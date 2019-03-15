@@ -1,0 +1,588 @@
+#Written by SMB
+#Created 6/6/18
+#Last edited 6/12/18 : random mating, gono variable
+library(dplyr)
+library(rbenchmark)
+library(progress) #progress bar for for loop
+library(magrittr)
+library(data.table)
+library(sp) #for the boundary check when dealing with mozzie dispersal
+library(truncnorm) #for parameter sampling from the truncated normal (needed for ABC step)
+library(flexsurv) #used for the Gompertz distribution for age distribution
+library(geosphere) #used for distance and dispersal calculations
+library(MCMCpack) #used for dirichlet distribution samples 
+
+#---- functions
+
+##--Test functions for initial age distribution: CHANGE
+
+initJuvStage <- function(age){
+  if(age >= 0 & age <= 5){
+    stage <- 1
+  }
+  else if(age > 5 & age <= 11){
+    stage <- 2
+  }
+  else{
+    stage <- 3
+  }
+  return(stage)
+}
+
+initAdultAge <- function(x){
+  age <- 13 + rgeom(1,0.1)
+  return(age)
+}
+
+
+##---End test functions
+
+##---Calculations----
+sampleClutchSize <- function(x){
+  if(x == 0){
+    clSize <- round(rnorm(1,mean=120,sd=7),0) #values from literature
+  }else{
+    clSize <- round(rnorm(1,mean=70,sd=5),0) #values from literature
+  }
+return(clSize)  
+}
+
+resizeClutch <- function(clutchSize,alpha){
+  newSize <- rbinom(1,size=clutchSize, prob=(1-alpha))
+  
+  return(newSize)
+}
+
+findInitMozziePosition <- function(boundaryDat,n){
+  #generates n randomly generated points to spawn mosquitoes at
+  #includes boundary check: if it finds some out-of-bound points (possible due to irregularity of polygon), will generate until appropriate
+  ##points are found
+  #this uses package sp
+  #creating points
+  i <- -1
+  while(i == -1){  
+    polyg <- Polygon(boundaryDat)
+    samplePts <- spsample(polyg, n, type="random") #see documentation for other options for 'type'
+    #check if points are in bounds:
+    if(sum(point.in.polygon(samplePts$x,samplePts$y,boundaryDat$Long,boundaryDat$Lat)) >= n){
+      i <- 0
+      posdf <- cbind(lat=samplePts$y,long=samplePts$x)
+      return(posdf)
+    }
+  }
+}
+
+
+initAgeDistn <- function (x){
+  #calculates ages for each initial adult mosquito according to the initial age structure model mentioned in the report (exponential model)
+  
+  
+}
+
+randomDispersal <-function(lat,long, lambda){
+  #We calculate 'd', the distance travelled, and 'theta', the direction travelled
+  #This is then converted to a new lat & long
+  d <- rexp(1,lambda) #formula given in documentation
+  thetad <- runif(1,0,2*pi) #formula given in documentation - distance in radians
+  ratio <- d/(1000*6371.01) #ratio between distance and the radius of the earth
+  
+  latrad <- (lat*pi)/180 #converting from degrees to radians
+  longrad <- (long*pi)/180
+  thetarad <- (thetad*pi)/180
+  
+  latconv <- asin(sin(latrad)*cos(ratio)+cos(latrad)*sin(ratio)*cos(thetarad))
+  longconv <- longrad+atan2(sin(thetarad)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(longrad))
+  
+  newlat <- (latconv*180)/pi #converting from radians to degrees
+  newlong <- (longconv*180)/pi
+  
+  #CHECK boundaries
+  return(list(lat=newlat, long=newlong))
+}
+
+temperatureChart <- function(mindf, maxdf, noTimeSteps){
+  #Calculate the average daily temperature over the simulation period
+  
+  oct <- rowMeans(cbind(mindf$Oct,maxdf$Oct)) #gets average daily temperatures across october
+  nov <- rowMeans(cbind(mindf$Nov,maxdf$Nov)) #average daily temperatures across nov
+  dec <- rowMeans(cbind(mindf$Dec,maxdf$Dec)) #average daily temps across dec
+  
+  dailyTemps <- c(oct,nov,dec)
+  dailyTemps <- dailyTemps[which(dailyTemps!=-1)] #-1 is our "NAN" entry, eg Nov 31st
+  dailyTemps <- dailyTemps[1:(noTimeSteps+1)] #plus 1 is beacuse we want a 0th timestep for initialisation
+  
+  return(dailyTemps)
+}
+
+initializeEnzyme <- function(dailyTemps){
+  #Initialises the Enzyme Kinetic model for the model run
+  #Since the update in EKS changes the same amount for every agent in the same lifetime stage on the same timestep, we make a "chart" of these values
+  #Notes for the constants.txt file:
+  ##KELV_CONV: BOM data is in degrees Celcius, enzyme kinetic calculations require degrees Kelvin, conversion is temp in C + 273.15 
+  ##R: universal gas constant used in EKM calculations
+  #Parameters for EKS are from Focks et al (1993)
+  ##E: Embryogenesis (egg) stage, L: Larval development stage, P: Pupal development stage, G: Gonotrophic cycle stage
+  
+  kelvinTemps <- dailyTemps + const$KELV_CONV #the EKM requires temperatures to be in Kelvin so we need to convert to Kelvin
+  
+  #EKM development charts for each stage of the development cycle: egg, larval, pupal and gonotrophic (adult reproductive). From Focks et. al 1993
+  #Since the equation assumes a timestep of hours, we multiply by 24 since our timestep is in days
+  EKM_egg <- 24*((const$RHO_E*(kelvinTemps/298)*exp((const$HA_E/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_E/const$R)*(((1/const$THALF_E)-(1/kelvinTemps)))))) 
+  EKM_larval <- 24*((const$RHO_L*(kelvinTemps/298)*exp((const$HA_L/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_L/const$R)*(((1/const$THALF_L)-(1/kelvinTemps))))))
+  EKM_pupal <- 24*((const$RHO_P*(kelvinTemps/298)*exp((const$HA_P/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_P/const$R)*(((1/const$THALF_P)-(1/kelvinTemps))))))
+  EKM_gono <- 24*((const$RHO_G*(kelvinTemps/298)*exp((const$HA_G/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_G/const$R)*(((1/const$THALF_G)-(1/kelvinTemps)))))) 
+  
+  EKM_chart <- as.data.table(cbind(EKM_egg,EKM_larval,EKM_pupal,EKM_gono))
+  
+  return(EKM_chart)
+}
+
+updateEnzyme <- function(type,time){
+#Updates the enzyme kinetic score (EKS) for a mosquito
+  #inputs: type- the stage the agent is in, time- the timestep we are at
+#It is highly recommended that you read the documentation on what the EKS is used for, the formula for the EKS and how it is updated as there is too much theory to be explained in code comments
+  
+  if(type == 1){
+    EKSUpdate <- EKMChart[[1]][time]
+  }
+  else if(type == 2){
+    EKSUpdate <- EKMChart[[2]][time]
+  }  
+
+  else if(type == 3){
+    EKSUpdate <- EKMChart[[3]][time]
+  } else{
+    EKSUpdate <- EKMChart[[4]][time]
+  }
+
+  return(EKSUpdate)
+}
+
+findMate <- function(femID,k){
+  #Finds a mate for a female mosquito of breeding age
+  #Output: ID of mate (-1 if does not find a mate)
+  #Recall that in order to mate, a female mozzie must have an Enzyme Kinetic Score (EKS) between 1.2 and 1.8 inclusive
+  #Please read documentation on this function as there is too much to explain to put in comments
+  newMate <- -1 #Function returns -1 if it does not find a mate
+  
+  #1) Draw an imaginary square around the mosquito of "radius" ~11m
+  position <- as.numeric(c("lat" = mozziedf$lat[femID], "long" = mozziedf$long[femID]))
+  
+  #CHANGE: boundary widened for testing purposes
+  bdary <- c("latmin" = position[1]-0.001, "latmax" = position[1]+0.001, "longmin" = position[2]-0.001 , "longmax" = position[2]+0.001) #CHANGE- magic number is a mozzie i chose randomly
+  
+  #Finding all possible males within this region that can mate with this female. Note that males can mate with more than one female
+  #CHECK EKS of males that can mate?
+  possibleMates <- which(mozziedf$lat >= bdary["latmin"] & mozziedf$lat <= bdary["latmax"] & mozziedf$long >= bdary["longmin"] & mozziedf$long <= bdary["longmax"] & mozziedf$gender == 0)
+  noBachelors <- length(possibleMates)
+  if(noBachelors == 0){
+    return(-1) #No new mate found
+  }
+  else if(noBachelors == 1){
+    return(mozziedf$ID[possibleMates]) #New mate is just the single male they found
+  }
+  else{
+   
+    #this is all fucked u gotta change this
+    possibleMates <- possibleMates[-which(mozziedf[possibleMates]$gono >= 2)]
+    bachelordt$ID <- mozziedf$ID[possibleMates]
+    bachelordt$ID <- bachelordt[-which()] #drop males who have already mated with two females that day
+    
+    newMate <- sample_n() #randomly picka  mate
+    #----- CHANGE 6/12/18: we now just choose a random mate within this region.
+    
+    #Data table to track our bachelors
+    #bachelordt <- data.table(ID = numeric(noBachelors), lat = double(noBachelors), long = double(noBachelors) , distance = double(noBachelors), alpha = double(noBachelors), exp =  double(noBachelors))
+    
+   
+    #bachelordt$lat <- mozziedf$lat[possibleMates]
+    #bachelordt$long <- mozziedf$long[possibleMates]
+    #posMatrix <- cbind(unlist(bachelordt$long),unlist(bachelordt$lat)) #this is so our data is in the format that the distance function wants
+    
+    #calculates distance between the female mosquito and each possible mate using the Haversine function. Just be aware that distHaverise() wants
+    ##long first, then lat
+    #bachelordt$distance <- distm(posMatrix,cbind(unlist(mozziedf$long[femID]), unlist(mozziedf$lat[femID])),fun = distHaversine)
+    
+    #-----------
+    #old code: the above is just a hacky solution to take the nearest mate
+      ##bachelordt$alpha <- lapply(bachelordt$alpha, function(x) x <- exp(-k*bachelordt$distance)) #calculate our alpha values
+    #bachelordt$alpha <- exp(-k*(bachelordt$distance)) #calculate our alpha values
+      ##bachelordt$exp <- exp(bachelordt$alpha)
+    
+      #bachelordt$exp <- bachelordt$alpha * 1 #This is just a dummy step to get probs for a working prototype, CHECK
+      #dirichlet <- rdirichlet(1,bachelordt$exp) #I think this is how it's done- CHECK
+    #newMate <- bachelordt$ID[which.max(rmultinom(1,1,dirichlet))[1]] #oh god i dunno I'm just taking the biggest number i don't even know anymore
+  newMate <- bachelordt$ID[which.min(bachelordt$distance)[1]]
+  }
+  
+  return(newMate)
+}
+
+
+##---End calculations---
+
+##---Constructors-----
+
+initialiseAdults <- function(N,pmale){
+  #note that a lot of these values will be -1 or 0 for the initial population of mosquitoes- eg the initial mozzies don't have parents that are in our model
+  #initialise df  
+  noVariables <- 13 #number of variables used to track state of mozzie minus 2 (lat & long). this is so I make sure to remember to change it as necessary
+  #df <- setNames(data.frame(matrix(ncol = 13, nrow = N)), c("ID", "gender" ,"mateID", "enzyme","timeBirth","timeAdult","timeDeath","typeDeath","whereTrapped","motherID","fatherID","infStatus","releaseLoc"))
+  #18/7: change df so we just have a numeric age for mosquitoes rather than timeBirth/timeAdult/timeDeath
+  df <- setNames(data.frame(matrix(ncol = noVariables, nrow = N)), c("ID", "gender" ,"mateID", "enzyme","age","gonoCycle","timeDeath","typeDeath","whereTrapped","motherID","fatherID","infStatus","releaseLoc"))
+  
+  df$gender <- lapply(df$gender, function(x) x<- rbinom(1,1,1-pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
+  df$ID <- 1:N #unique ID for each mosquito
+  
+  #since these are initial adults some of these initialisations are irregular/exceptions
+  #df$timeBirth <- 0
+  #df$timeAdult <- 0
+  df$age <- lapply(df$age, function (x) x<-round(rtruncnorm(1,mean=20,sd=2,a=14,b=30)))
+  df$motherID <- -1
+  df$fatherID <- -1
+  df$releaseLoc <- -1
+  df$timeDeath <- -1
+  df$typeDeath <- -1
+  df$infStatus <- 0 #since these are wild mosquitoes, none are infected (from Carla's notes)
+ #infStatus: 1 for wolbachia, 0 for no wolbachia, -1 for CI
+  df$whereTrapped <- -1
+  
+  #males don't have mates in this model, so set mateID = -1
+  #df$mateID[df$gender == 0] <- -1
+  #Update 24/7: just initialise every mozzie with mateID = -1, female mozzies that mate will later get a positive mateID
+  df$mateID <- -1
+  
+  df$enzyme <- lapply(df$enzyme, function(x) x <- runif(1, min=0, max=1))  #CHANGE: want to use initial age distribution to get spread of initial enzymes
+  
+  #FIX this shit and make it work better :(
+  df$gonoCycle[which(df$gender == 0)] <- -1
+  df$gonoCycle[which(df$gender == 1 & df$age >=14 & df$age < 20)] <- 0
+  df$gonoCycle[which(df$gender == 1 & df$age >=20 & df$age < 26)] <- 1
+  df$gonoCycle[which(df$gender == 1 & df$age >=26)] <- 2
+  
+  #initial position of each mosquito, then combine with rest of dataframe
+  posdf <- findInitMozziePosition(boundaryDat,N)
+  df<- cbind(df,posdf)
+      
+  return(df)  
+}
+
+initialiseJuveniles <- function(Njuv){
+  df <- setNames(data.frame(matrix(ncol = 9, nrow = Njuv)), c("mother","age","stage" ,"infProb", "lat","long","clutchSize","enzyme","pDeath"))
+  #no ID, gender, etc until they become adults
+  df$mother <- -1
+  df$age <- lapply(df$age, function(x) x <- round(runif(1, min=0, max=14),0)) #Uniform between 0 and 14 as a quick fix- FIX
+  df$stage <- mapply(FUN = initJuvStage, df$age)
+  
+  #this can be replaced with a binary for inf/noninf since fringe cases lead to CI
+  df$infProb <- 0.01 #dummy setup, this will be sampled in RABC (also need correct value from Carla)
+  
+  df$clutchSize <- lapply(df$clutchSize, function (x) x <- sampleClutchSize(0))
+  df$enzyme <- lapply(df$enzyme, function(x) x <- runif(1, min=0, max=0.95)) #CHANGE: this should not be uniform
+  df$pDeath <- 0.1 #fix this. see removeNatDeath in Carla's code
+  
+  ##BUT for the moment we're just using the same method as the adult lat/long to get working prototype
+  df$lat <- lapply(df$lat, function (x) x<-round(runif(1, min = min(boundaryDat$Lat), max = max(boundaryDat$Lat)),4))
+  df$long <- lapply(df$long, function (x) x<-round(runif(1, min = min(boundaryDat$Long), max = max(boundaryDat$Long)),4))
+
+return(df)  
+}
+
+initialiseEggs <- function(toLay){
+  #Mothers laying clutches of eggs
+  #Creates new entries for the data table of new juveniles
+  #df <- setNames(data.frame(matrix(ncol = 8, nrow = Njuv)), c("mother","age", "infProb", "lat","long","clutchSize","enzyme","pDeath"))
+  #Input: vector of IDs of mums about to lay eggs
+  noMothers <- length(toLay)
+  eggsdt <- data.table(mother = numeric(noMothers), age = numeric(noMothers), stage = numeric(noMothers), infProb = numeric(noMothers) , lat = double(noMothers), long = double(noMothers), clutchSize =  numeric(noMothers), enzyme = double(noMothers), pDeath = double(noMothers))
+  eggsdt$mother <- mozziedf$ID[toLay] #ID of mother
+  eggsdt$age <- 0 #because they're new!
+  eggsdt$stage <- 1 #because they're eggs!
+  eggsdt$lat <- mozziedf$lat[toLay] #mother's position
+  eggsdt$long <- mozziedf$long[toLay] #mother's position
+  
+  #Clutch sizes- they differ between non-carrier (eta_1) and carrier mothers (eta_2)
+  #Note eta_1 and eta_2 are RABC parameters (sampled at the beginning of the simulation) so the clutch sizes here are to be fixed
+  eggsdt$clutchSize[which(mozziedf$infStatus[toLay] == 1)] <- eta_2 #finish
+  eggsdt$clutchSize[which(mozziedf$infStatus[toLay] == 0)] <- eta_1 #finish
+  
+  eggsdt$enzyme <- 0 
+
+  #CI- FINISH
+  #Probability of infection (carrying Wolbachia)- please see documentation
+  #whichNoninf <- which(mozziedf$infStatus[toLay] == 0 & mozziedf$infStatus[mozziedf$mateID[toLay]] == 0)
+  
+  eggsdt$pDeath <- 0.1
+  
+  return(eggsdt)
+}
+
+juvtoAdult <- function(juvID, idStart, pmale,lambda){
+  #df <- setNames(data.frame(matrix(ncol = 15, nrow = N)), c("ID", "gender" , "lat", "long","mateID", "enzyme","timeBirth","timeAdult","timeDeath","typeDeath","whereTrapped","motherID","fatherID","infStatus","releaseLoc"))
+  dt <- data.table(ID=idStart:(idStart+juvdf$clutchSize[[juvID]]-1), gender=numeric(juvdf$clutchSize[[juvID]]), lat=numeric(juvdf$clutchSize[[juvID]]), long=numeric(juvdf$clutchSize[[juvID]]), mateID=numeric(juvdf$clutchSize[[juvID]]), enzyme=numeric(juvdf$clutchSize[[juvID]]), age=numeric(juvdf$clutchSize[[juvID]]), gonoCycle=numeric(juvdf$clutchSize[[juvID]]) ,timeDeath=numeric(juvdf$clutchSize[[juvID]]) ,typeDeath=numeric(juvdf$clutchSize[[juvID]]), whereTrapped=numeric(juvdf$clutchSize[[juvID]]), motherID=numeric(juvdf$clutchSize[[juvID]]), fatherID=numeric(juvdf$clutchSize[[juvID]]), infStatus=numeric(juvdf$clutchSize[[juvID]]), releaseLoc=numeric(juvdf$clutchSize[[juvID]]))
+  dt$gender <- lapply(dt$gender, function(x) x<- rbinom(1,1,1-pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
+  
+  #We assume that mozzies disperse a bit from their original position when they hatch
+  #CHECK boundaries
+  positions <- lapply(1:juvdf$clutchSize[[juvID]], function(x) randomDispersal(juvdf$lat[[juvID]],juvdf$long[[juvID]],lambda)) #creates a list of lats and longs
+  positions <- do.call(rbind,positions)
+  dt$lat <- positions[,1]
+  dt$long <- positions[,2]
+  
+  dt$mateID <- dt$mateID[dt$gender == 0] <- -1 #males don't have mates
+  dt$enzyme <- 0 #enzyme 1.1 for now
+  #dt$timeBirth <- 0 #change
+  #dt$timeAdult <- 0 #change
+  dt$age <- 0
+  #dt$age <- 14 + t
+  dt$gonoCycle <- 0 #FIX
+  dt$whereTrapped <- -1
+  dt$motherID <- -1
+  dt$fatherID <- -1
+  dt$infStatus <- lapply(dt$infStatus, function(x) x<-rbinom(1,1,juvdf$infProb[juvID]))
+  dt$releaseLoc <- -1 
+  dt$timeDeath <- -1
+  dt$typeDeath <- -1
+  
+return(dt)  
+}
+##End Constructors-----
+
+##----- End functions
+
+
+ 
+#----- Read in data files
+  boundaryDat <- read.table("New_pp_Bound.txt", header=TRUE) #Boundary data for the boundary of the area used in trial (given as a set of lat/long points)
+  #weatherDat <- read.table("BOMdata.txt", header=TRUE) #Weather data over 90 days as provided by BOM
+  minTemp <- read.table("cairnsAero_minTemp.txt", header=TRUE) #Weather data over 90 days as provided by BOM
+  maxTemp <- read.table("cairnsAero_maxTemp.txt", header=TRUE) #Weather data over 90 days as provided by BOM
+  const <- read.table("constants.txt", header=TRUE) #constants used for EKM calculations
+##---- End reading files
+
+#----- Global constants
+# 20/7: Move this into a separate file
+
+#These constants are more for sanity checks
+max_age <- 30 #mozzies who reach this age automatically die naturally
+max_juv_age <- 14 #juveniles who reach this age automatically become adults
+init_prop_inf <- 0 #initial proportion of wild mozzies carrying Wolbachia- we expect this to be 0
+
+##---- End Global constants
+
+#----- Parameter generation (Will be handled by RABC)
+  #lambda <- rgamma(1,shape=0.044,scale=3) #CHECK/CHANGE THIS omg i don't know how the Gamma distribution works
+  lambda <- rgamma(1,3,22) #this is the alternative for lambda given in priors.pdf. Seems to give reasonable results with lat/long conversion so tempted to go with
+#pmale <- runif(1,0.3,0.7) #can also set to be 0.45
+#OR pmale <- rnorm(1,mean=0.5,sd=0.02) ??? check with Carla which one
+  pmale <- 0.45 #set at 0.45 for now #proportion of male mosquitoes in wild population
+  # k <-  rgamma(1,shape=0.2,scale=0.06) #CHANGE THIS #rate at which probability of mating drops wrt distance of potential mate
+  #k <- rgamma(1,1,1/35) #rate at which probability of mating drops wrt distance of potential mate
+  k <- rgamma(1,shape=1,scale=1/35)
+  phi <- runif(1,0,0.1) #hyperparameter for probability that mozzies are trapped by any given trap
+  a <- rtruncnorm(1,mean=0.02,sd=0.01,a=0,b=0.5) #Scale parameter regarding probability of natural death (Gompertz model)
+  b <- rtruncnorm(1,mean=0.22,sd=0.05,a=0,b=0.5) #Scale parameter regarding probability of natural death (Gompertz model)
+  alpha <- 0.1 #CHANGE #this is for natural death
+  p_1 <- runif(1,0,0.05) #parameter for CI (prop. of uninfected larvae given both parents are infected)
+  eta_1 <- round(rnorm(1,mean=120,sd=7),0) #no. of offspring produced by Wb non-carrier mothers (values from literature)
+  eta_2 <- round(rnorm(1,mean=70,sd=5),0) #no. of offspring produced by Wb carrier mothers (values from literature)
+##----- end of parameter generation
+
+#----- variable initialisation
+  N <- 100 #number of adult mosquitoes at time t=0. To be initialised between 4000 to 20000
+  Njuv <- 150 #number of juvenile CLUSTERS (not individuals) at time t=0
+  idStart <- N+1 #ID numbers of initial adults will be 1:N, then we start at N+1 for any new adult mosquito within simulation
+  noTimeSteps <- 90 #our simulation runs for 90 days
+##---- end variable initialisation
+
+#---- calculate charts
+  dailyTemps <- temperatureChart(minTemp, maxTemp, noTimeSteps) #chart of average daily temperatures for each day of the simulation
+  EKMChart <- initializeEnzyme(dailyTemps) #chart of daily updates for EKS
+##---- end chart calculation  
+  
+  
+#----- initial model construction
+##7/6/18: change code so constructs as a data table
+  mozziedf <- as.data.table(initialiseAdults(N, pmale)) #initial adult population
+  juvdf <- as.data.table(initialiseJuveniles(Njuv)) #initial juvenile population
+
+##---- end initial model construction
+
+  pb <- progress_bar$new(total = noTimeSteps) #progress bar
+ 
+  for(t in 1:noTimeSteps){
+    pb$tick() #progress bar
+#---Step 1: Do we have juveniles turning in to adults?---#
+  #update 26/10/18
+  toAdult <- which(juvdf$stage == 3 & juvdf$enzyme > 0.95)
+  
+#only bother trying to add new adults if there are clutches of age 14
+  if((length(toAdult)) != 0){
+    newAdultsdt <- mapply(FUN=juvtoAdult,toAdult,idStart,pmale,lambda,SIMPLIFY = FALSE) #make new adults
+  
+  #using pipes to get rid of previous two lines
+  #let's try and use PIPES
+    newAdultsdt %<>% rbindlist() %>% as.data.table()
+  #append the new adults to the adult data table
+    mozziedf <- rbind(mozziedf,newAdultsdt)
+  
+  #delete row(s) of data table corresponding to the clutches that aged into adult mozzies
+    juvdf <- juvdf[-toAdult]
+    rm(newAdultsdt)
+  }
+  
+  #---Step 1.5: any juveniles moving to the next development stage?
+
+  #if enzyme > 0.95, move on to the next development stage and reset enzyme score
+  if(length(which(juvdf$enzyme > 0.95))){
+    #which(juvdf$enzyme > 0.95)
+    juvdf[which(juvdf$enzyme > 0.95)]$stage <- juvdf[which(juvdf$enzyme > 0.95)]$stage + 1
+   
+    #this gives HELLA warnings- try mapply or lapply or something?
+    juvdf[which(juvdf$enzyme > 0.95)]$enzyme <- 0
+    #juvdf[which(juvdf$enzyme > 0.95)]$stage <- lapply(juvdf[which(juvdf$enzyme > 0.95)]$stage, function(x) x <- juvdf$enzyme[x] <- 0)
+  }
+  
+  #---End Step 1.5
+  rm(toAdult)
+##--- End Step 1
+
+#---Step 2: Producing offspring---#
+#Conditions to be satisfied for a mother to lay a clutch of eggs: 
+## 1) Has a mate
+## 2) Enzyme Kinetic Score > 1 (should mean that mosquito has a mate)
+## 3) First egg laying event is at EKS > 1, second at 1.58, third at 2.16, etc. for multiples of 0.58 (from Focks et al '93)
+  ## So the condition for checking whether or not EKS is high enough is 1 + (gender-1)*0.58, and after a mother lays eggs their gender variable will be incremented by 1.
+
+  #toLay <- which(mozziedf$gender == 1 & mozziedf$mateID != -1)  
+  toLay <- which(mozziedf$gender == 1 & mozziedf$mateID != -1 & ((mozziedf$enzyme >= 1 & mozziedf$gonoCycle == 0) | (mozziedf$enzyme >= 1.58 & mozziedf$gonoCycle == 1) | (mozziedf$enzyme >= 2.16 & mozziedf$gonoCycle == 2)))
+  
+  
+  #toLay <- which(mozziedf$gender == 1 & mozziedf$mateID != -1 & mozziedf$enzyme >= 1 + (mozziedf$gender - 1)*0.58)
+  
+  #toLay <- which(mozziedf$gender == 1 & mozziedf$mateID != -1)
+
+  
+ if(length(toLay) != 0){
+    #newEggsdt <-
+    newEggsdt <- initialiseEggs(toLay)
+    #newEggsdt %<>% rbindlist() %>% as.data.table() #don't think I need this?
+    juvdf <- rbind(juvdf,newEggsdt)
+    rm(newEggsdt)
+  }
+  
+  rm(toLay)
+##--- End Step 2
+
+#---Step 3: Do we have mosquitoes being trapped (and killed?)---#
+##--- End Step 3
+
+#---Step 4: Natural mosquito death (adult and juvenile)---#
+#Juvenile death:
+  #juvdf$clutchSize <- mapply('-',juvdf$clutchSize, rbinom(15, prob=juvdf$pDeath, n=juvdf$clutchSize)) #includes death from natural predation
+  
+  #CHANGE THIS! maybe just take 10% away when they become adults, this will kill off any clutch in like 10 timesteps
+  #juvdf$clutchSize <- mapply('-',juvdf$clutchSize, rbinom(nrow(juvdf), prob=juvdf$pDeath, n=juvdf$clutchSize)) #includes death from natural predation
+  #alternative way (8/11):
+  #juvdf$clutchSize <- lapply(juvdf$clutchSize, function(x) x <- rbinom(1,size=juvdf$clutchSize[[x]],prob=(1-alpha)))
+  
+  #alternative alternative way (8/11):
+  #fix juv death: want to use exponential distribution
+  
+  juvdf$clutchSize <- mapply(FUN=resizeClutch,juvdf$clutchSize,alpha)
+  
+  
+  
+  #system.time(juvdf[,clutchSize := (as.numeric(clutchSize) - as.numeric(rbinom(15,prob=pDeath,n=clutchSize)))]) #this would work if it weren't for the '-'
+
+##Adult death:
+#Adults die automatically when they reach age 40
+  #CHANGE this to EKS?
+  toOldDie <- which(mozziedf$age == max_age & mozziedf$timeDeath == -1) #vector of mosquitoes that will die of old age #CHANGE TO age == 30
+  if((length(toOldDie)) != 0){
+  #track day that they died (timeDeath) and set typeDeath=0 to denote natural (not trapped) death
+    #ADD THE FOLLOWING TWO LINES BACK FOR MAIN SIM
+    #mozziedf$typeDeath[toOldDie] <- 0
+    #mozziedf$timeDeath[toOldDie] <- t #CHANGE to current timestep when I get that working
+    mozziedf <- mozziedf[!toOldDie,]
+  }
+
+  #Also have natural death for adults as per juveniles
+  #toNatDie <- sample_n(mozziedf, rbinom(1,size=nrow(mozziedf),prob=(1-alpha)))$ID
+  toNatDie <- sample_n(mozziedf, rbinom(1,size=nrow(mozziedf),prob=(1-alpha)))$ID
+  
+  
+  #ADD THE FOLLOWING TWO LINES BACK FOR MAIN SIM
+  #mozziedf$typeDeath[toNatDie] <- 0
+  #mozziedf$timeDeath[toNatDie] <- t #CHANGE to timestep
+  
+  
+  mozziedf <- mozziedf[!toNatDie,]
+  #mozziedf <- mozziedf[!]
+  
+  rm(toOldDie)
+  rm(toNatDie)
+##--- End Step 4
+
+#---Step 5: Mosquito mating---#
+  #We only find mates for female mosquitoes with EKS between 1.2 and 1.8 inclusive who don't already have a mate.
+  #toMate <- which(mozziedf$enzyme >= 1.2 & mozziedf$enzyme <= 1.8 & mozziedf$gender == 1 & mozziedf$mateID == -1) #& age = 16?
+  toMate <- which(mozziedf$gender == 1 & mozziedf$mateID == -1)
+  if(length(toMate) > 30){
+    toMate <- toMate[1:30]
+  }
+  if(length(toMate) != 0){
+    mozziedf$mateID[toMate] <- mapply(FUN=findMate,toMate,k)
+    #try <- mapply(FUN=findMate,toMate,k) #for testing: gives the vector of mate IDs for the bachelorette mosquitoes
+  }
+  
+  lapply(toMate,FUN=findMate)
+  rm(toMate)
+##--- End Step 5
+
+#---Step 6: update kinetic enzyme score of each agent---#
+  #juvdf$age <- sapply(juvdf$age, function(x) x <- x+1) #maybe change to lapply if this is messing things up
+  
+  #not done yet FIX, also keep in mind won't work becasuse time t hasn't been implemented (24/10/18)
+  #t = 1
+  juvEnzymeUpdate <- mapply(FUN=updateEnzyme,juvdf$stage,t)
+  #juvdf$enzyme <- juvdf$enzyme + as.data.frame(juvEnzymeUpdate) #this is a super hacky method. should be like the below two lines but it's not working
+  
+  juvdf$enzyme <- as.numeric(juvdf$enzyme) + as.numeric(juvEnzymeUpdate) #this is a super hacky method. should be like the below two lines but it's not working
+  
+  
+  mozzieEnzymeUpdate <- mapply(FUN=updateEnzyme,4,t) #adult mosquitoes always update with the same EKM formula, hence are always in "stage 4"
+  #mozziedf$enzyme <- mozziedf$enzyme + as.data.frame(mozzieEnzymeUpdate)
+  mozziedf$enzyme <- as.numeric(mozziedf$enzyme) + as.numeric(mozzieEnzymeUpdate)
+  #  juvdf$enzyme <- lapply(juvdf$enzyme, function(x) x <- updateEnzyme(juvdf[x]$stage,t))
+  #juvdf$enzyme <- lapply(juvdf$enzyme, function(x) x <- juvdf[x]$enzyme + updateEnzyme(juvdf[x]$stage,t))
+  
+  rm(juvEnzymeUpdate)
+  rm(mozzieEnzymeUpdate)
+##--- End Step 6
+
+#---Step 7: Migration (happens at time steps 15-17)---#
+##CHECK boundaries
+##Determine which mosquitoes are going to migrate
+  toMigrate <- which(mozziedf$age == 19 | mozziedf$age == 20 | mozziedf$age == 21) #CHANGE
+  if(length(toMigrate) != 0){
+    #List of updated lats/longs
+    updateDisp <- mapply(FUN = randomDispersal, mozziedf$lat[toMigrate],mozziedf$long[toMigrate],lambda) #CHECK this works with length(toMigrate) > 1
+    updateDisp <- do.call(rbind,updateDisp)
+    
+    #Suppressing warnings for this assignment at the moment- this operation coerces a list to a double, going from a precision of 47 dp to 45 dp.
+    ##However for lat/long any more than 10 dp is fairly nonsensical so we don't care
+    suppressWarnings(mozziedf[toMigrate,"lat" := updateDisp[1,]])
+    suppressWarnings(mozziedf[toMigrate, "long" := updateDisp[2,]])
+    rm(updateDisp)
+  }
+  
+  rm(toMigrate)
+##---End Step 7
+
+  #---Step 8: update the numerical age of each agent
+  juvdf$age <- mapply('+',juvdf$age, 1)
+  mozziedf$age <- mapply('+',mozziedf$age,1)
+  #---End Step 8 
+#---End of time step
+  }

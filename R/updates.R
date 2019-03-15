@@ -1,0 +1,214 @@
+#' Random dispersal of a single agent according to distance formulae.
+#' Method we use: distance and bearing, Haversine method
+#' Note we work in units of radians and kilometres.
+#' \begin{enumerate}{
+#'  \item Calculate 'd', the distance travelled
+#'  \item Calculate 'theta', the direction or bearing travelled
+#'  \item Convert to lat and long.
+#' }
+#' @param lat Latitude or 'y' coordinate of agent.
+#' @param long Longitude or 'x' coordinate of agent.
+#' @param lambda Shape parameter for distance calculation. ABC parameter.
+#' @return Updated \code{lat} and \code{long} of agent, as a list.
+random_dispersal <- function(lat, long, lambda){
+  d        <- rexp(1,1/lambda) #formula given in documentation
+  theta.d  <- runif(1,0,2*pi) #formula given in documentation - distance in radians
+  #ratio    <- d/(1000*6371.01) #ratio between distance and the radius of the earth
+  ratio    <- d/(6371.01)
+
+  latrad   <- (lat*pi)/180 #converting from degrees to radians
+  longrad  <- (long*pi)/180
+  #thetarad <- (theta.d*pi)/180
+
+  latconv  <- asin(sin(latrad)*cos(ratio)+cos(latrad)*sin(ratio)*cos(theta.d))
+  #longconv <- longrad+atan2(sin(thetarad)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(longrad))
+  longconv <- longrad+atan2(sin(theta.d)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(latconv))
+
+  newlat   <- (latconv*180)/pi #converting from radians to degrees
+  newlong  <- (longconv*180)/pi
+
+  new.pos  <- list(lat=newlat, long=newlong)
+  #CHECK boundaries
+  return(new.pos)
+}
+
+#' Gets the amount by which the Enzyme Kinetic Score for an agent will increase.
+#' This value is added to their current EKS.
+#' This function works as a 'lookup' for the EKS data, which is all calculated
+#'     at the beginning of the simulation- this function just grabs it
+#'
+#' @param stage Stage of agent. 1: egg, 2: larvae, 3: pupae, 4: adult.
+#' @param timestep Current timestep.
+#' @return Amount by which an agent's EKS will increase for that timestep.
+#' @examples
+#' update_enzyme(1, 1)
+#' update_enzyme(4, 13)
+update_enzyme <- function(type, time){
+  if(type == 1){
+    EKSUpdate <- EKMChart[[1]][time]
+  }
+  else if(type == 2){
+    EKSUpdate <- EKMChart[[2]][time]
+  }
+
+  else if(type == 3){
+    EKSUpdate <- EKMChart[[3]][time]
+  } else{
+    EKSUpdate <- EKMChart[[4]][time]
+  }
+  return(EKSUpdate)
+}
+
+#' Finds a mate for a female mosquitoes of breeding age.
+#' We draw a box of 'radius' \code{k} around the agent.
+#' \code{k} is an ABC parameter and usually between 11m to 100m.
+#' Note that here we mainly deal with ID number, an actual data.table variable,
+#'  and not the agent's index in the main data.table.
+#'
+#' @section Algorithm for finding mate
+#' \begin{itemize}{
+#'  \item{If there are no males within box, return -1 for no mate.}
+#'  \item{If there is 1 male, that is the new mate.}
+#'  \item{If there is >1 male, randomly choose one.}
+#' }
+#' Note that there is a max. number of agents that a male can mate with in a day,
+#'  given by \code{max_daily_mates}.
+#' It is important in testing to ensure that the \code{gonoCycle} variable for
+#'  each male mate is properly updated on a global scope.
+#' We assume that females only mate once.
+#'
+#' @section Who can mate?
+#' Recall that in order to mate, a female mosquito muse have:
+#' \begin{itemize}{
+#'  \item{EKS between 1.2 and 1.8 inclusive}
+#'  \item{gonoCycle 1, 2 or 3}
+#' }
+#'
+#' @param femID ID of female looking for mate.
+#' @param k Distance within which female mosquito 'searches' for mate. ABC parameter.
+#' @param max_daily_mates Number of times a male can mate in a day.
+#' @return \code{mateID} of agent, or -1 if agent does not find a mate.
+#' @examples
+#' add(1, 1)
+#' add(10, 1)
+find_mate <- function(femID, k, max_daily_mates){
+  newMate  <- -1 #Function returns -1 if it does not find a mate
+  position <- as.numeric(c("lat" = mozziedf$lat[femID],
+                           "long" = mozziedf$long[femID]))
+
+  #CHANGE: magic number to k
+  bdary    <- c("latmin" = position[1]-0.00011, "latmax" = position[1]+0.00011,
+                "longmin" = position[2]-0.00011 , "longmax" = position[2]+0.00011)
+  #CHECK EKS of males that can mate?
+  possibleMates <- which(mozziedf$lat >= bdary["latmin"] & mozziedf$lat <= bdary["latmax"] & mozziedf$long >= bdary["longmin"] & mozziedf$long <= bdary["longmax"] & mozziedf$gender == 0)
+  noBachelors   <- length(possibleMates)
+  #print(paste0("noBachelors: ",noBachelors))
+  if(noBachelors == 0){
+    newMate <- -1
+    # print(paste0(femID, " no mate found"))
+  }
+  else if(noBachelors == 1){
+    if(mozziedf[possibleMates]$gonoCycle >= max_daily_mates){
+      newMate <- -1 #even though there is only one male, he has mated too much today
+      #print(paste0(femID, " 1 mate found, unsuitable"))
+    }
+    else{
+      newMate <- as.integer(possibleMates)
+      mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1
+
+      #return(mozziedf$ID[possibleMates]) #New mate is just the single male they found
+      #print(paste0(femID, " 1 mate found"))
+    }
+  }
+  else{
+    if(length(which(mozziedf[possibleMates]$gonoCycle >= max_daily_mates)) == 0){
+      newMate <- sample(possibleMates)[1] #this randomly permutes the list of possible mates and then picks the one at the top of the pile
+      mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1 #increment number of mates of male by 1
+      #print(paste0(femID, " multiple mates, all ok"))
+    }
+    else{
+      possibleMates <- possibleMates[-(which(mozziedf[possibleMates]$gonoCycle >= max_daily_mates))] #remove males who have mated more than max_daily_mates in a day
+      #now we have one more condition to check for: if we drop some males from "possibleMates" we might end up dropping them all, so if we dropped them all we return -1
+      if(length(possibleMates) == 0){
+        #print(paste0(femID, " multiple mates, had to drop some AND then ended up with none"))
+        newMate <- 1
+      }
+      else{
+        newMate <- sample(possibleMates)[1] #this randomly permutes the list of possible mates and then picks the one at the top of the pile
+        mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1 #increment number of mates by 1
+        #print(paste0(femID, " multiple mates, had to drop some"))
+      }
+    }
+  }
+  return(newMate)
+}
+
+#' Takes a juvenile agent and splits it into adult ages
+#' This is to simulate 'emergence' of juveniles form aquatic stage.
+#' Many variables stay the same, like motherID, but new ones are added or changed
+#' Agents also undergo one motility event when they emerge.
+#' This becomes their new lat/long.
+#'
+#' @section Data.table variables and initialisation:
+#' ID:     Unique ID number of agent.
+#' gender: Male is 0, female is 1. Sampled by 1 Binomial trial as opposed to a
+#'         Bernoulli trial as Bernoulli requires another package.
+#' mateID: Unique ID of their mate. Since no new adults will have a mate
+#'         yet, it is initialised as -1.
+#'         Males will always have mateID as -1 since they can have multiple mates.
+#' enzyme: Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+#'         at 0 since they have just moved up from previous stage.
+#' age:    Age in days. Given from their juvenile agent entry.
+#' gonoCycle: Gonotrophic cycle. Means something different for males and females.
+#'            males: number of times they've mated in a day, to be reset daily
+#'            females: how many times they've laid a clutch of eggs
+#'            Starts at 0 for everyone since they've just emerged.
+#' timeDeath: Timestep they died: initialised as -1 as they are alive.
+#' typeDeath: Random mortality/trapped death/death due to old age: which type?
+#' whereTrapped: in the event of trapped death, where did they die? -1 otherwise.
+#' motherID: Unique ID of mother. Taken from their juvenile agent entry.
+#' fatherID: Unique ID of father. Taken from their juvenile agent entry.
+#' infStatus: 1 if they carry Wolbachia, 0 if no Wolbachia, -1 for CI
+#'            There should not be any with -1 because they should not have hatched.
+#' lat:      Initial north/south or 'y' coordinate of agent.
+#'            Should start with 145. Determined by motility event.
+#' long:     Initial east/west of 'x' coordinate of agent.
+#'            Should start with -16. Determined by motility event.
+#' @param juvID The index of the agent in the juvenile data.table to be converted to adult agents.
+#' @param idStart Where to start 'counting' the ID numbers of new agents from.
+#' @param pmale Probability of being male.
+#' @param lambda Shape parameter for distance calculation. ABC parameter.
+#' @return A data.table of \code{N} adult agents.
+juv_to_adult <- function(juvID, idStart, pmale, lambda){
+  new.dt <- data.table(ID=idStart:(idStart+juvdf$clutchSize[[juvID]]-1), gender=numeric(juvdf$clutchSize[[juvID]]), lat=numeric(juvdf$clutchSize[[juvID]]), long=numeric(juvdf$clutchSize[[juvID]]), mateID=numeric(juvdf$clutchSize[[juvID]]), enzyme=numeric(juvdf$clutchSize[[juvID]]), age=numeric(juvdf$clutchSize[[juvID]]), gonoCycle=numeric(juvdf$clutchSize[[juvID]]) ,timeDeath=numeric(juvdf$clutchSize[[juvID]]) ,typeDeath=numeric(juvdf$clutchSize[[juvID]]), whereTrapped=numeric(juvdf$clutchSize[[juvID]]), motherID=numeric(juvdf$clutchSize[[juvID]]), fatherID=numeric(juvdf$clutchSize[[juvID]]), infStatus=numeric(juvdf$clutchSize[[juvID]]), releaseLoc=numeric(juvdf$clutchSize[[juvID]]))
+  new.dt$gender <- lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
+
+  #We assume that mozzies disperse a bit from their original position when they hatch
+  #CHECK boundaries
+  positions   <- lapply(1:juvdf$clutchSize[[juvID]], function(x) random_dispersal(juvdf$lat[[juvID]],juvdf$long[[juvID]])) #creates a list of lats and longs
+  positions   <- do.call(rbind,positions)
+  new.dt$lat  <- positions[,1]
+  new.dt$long <- positions[,2]
+
+  new.dt$mateID      <- new.dt$mateID[new.dt$gender == 0] <- -1 #males don't have mates
+  new.dt$enzyme      <- 0 #enzyme resets because they're moving to the next stage
+
+  new.dt$age <- 0 #CHANGE
+  #new.dt$age <- 14 + t
+  new.dt$gonoCycle    <- 0 #gonoCycle will start at 0 for everyone when they become an adult
+  new.dt$whereTrapped <- -1
+
+  #new.dt$motherID <- -1
+  #new.dt$fatherID <- -1
+
+  new.dt$motherID     <- juvdf$mother[[juvID]]
+  new.dt$fatherID     <- juvdf$father[[juvID]]
+
+  new.dt$infStatus    <- lapply(new.dt$infStatus, function(x) x<-rbinom(1,1,juvdf$infProb[juvID]))
+  #new.dt$infStatus <- juvdf$infProb[[juvID]] #FIX
+  new.dt$releaseLoc   <- -1
+  new.dt$timeDeath    <- -1
+  new.dt$typeDeath    <- -1
+
+  return(new.dt)
+}

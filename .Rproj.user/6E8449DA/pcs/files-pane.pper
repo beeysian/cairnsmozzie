@@ -1,0 +1,9 @@
+{
+    "path" : "~/mozzie",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
