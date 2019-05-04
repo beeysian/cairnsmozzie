@@ -7,7 +7,7 @@ This value is added to their current EKS.
 This function works as a 'lookup' for the EKS data, which is all calculated
     at the beginning of the simulation- this function just grabs it}
 \usage{
-update_enzyme(type, time)
+update_enzyme(stage, timestep)
 }
 \arguments{
 \item{stage}{Stage of agent. 1: egg, 2: larvae, 3: pupae, 4: adult.}
@@ -22,8 +22,4 @@ Gets the amount by which the Enzyme Kinetic Score for an agent will increase.
 This value is added to their current EKS.
 This function works as a 'lookup' for the EKS data, which is all calculated
     at the beginning of the simulation- this function just grabs it
-}
-\examples{
-update_enzyme(1, 1)
-update_enzyme(4, 13)
 }

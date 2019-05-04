@@ -1,0 +1,19 @@
+Package: mozzie
+Type: Package
+Title: Agent-based model of Wolbachia release in a nice tidy package
+Version: 0.1.0
+Author: person("Sarah", "Belet", email = "sarah.belet@monash.edu",
+                  role = c("aut", "cre"))
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+Depends: R (>= 3.1.0)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: data.table, dplyr, ggvis, magrittr, geosphere, MCMCpack,
+        rbenchmark, progress, sp, truncnorm, flexsurv, ggplot2
+RoxygenNote: 6.1.1
+Suggests: testthat, knitr, rmarkdown
+VignetteBuilder: knitr
+Built: R 3.5.1; ; 2019-05-04 07:12:14 UTC; unix

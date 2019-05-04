@@ -29,7 +29,8 @@ after construction.
 }
 \section{Data.table variables and initialisation}{
 
-ID:     Unique ID number of agent.
+\itemize{
+\item{ID:     Unique ID number of agent.}}
 gender: Male is 0, female is 1. Sampled by 1 Binomial trial as opposed to a
         Bernoulli trial as Bernoulli requires another package.
 mateID: Unique ID of their mate. Since no initial mosquitoes will have a mate
@@ -54,6 +55,3 @@ lat:      Initial north/south or 'y' coordinate of agent. Should start with -16.
 long:     Initial east/west of 'x' coordinate of agent. Should start with 145.
 }
 
-\examples{
-initialise_adults(10, 0.45)
-}

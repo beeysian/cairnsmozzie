@@ -17,8 +17,3 @@ Juvenile stage: 0 for egg, 1 for larval, 3 for pupal.
 Roughly determines the stage of a juvenile clutch given numerical 'age'.
 Needs checking with literature, or replace with better method.
 }
-\examples{
-init_juv_stage(1)
-init_juv_stage(7)
-init_juv_stage(13)
-}

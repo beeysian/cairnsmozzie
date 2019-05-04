@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>R: Agent-based model of Wolbachia release in a nice tidy package</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+<h1> Agent-based model of Wolbachia release in a nice tidy package
+<img class="toplogo" src="../../../doc/html/Rlogo.svg" alt="[R logo]" />
+</h1>
+<hr/>
+<div style="text-align: center;">
+<a href="../../../doc/html/packages.html"><img class="arrow" src="../../../doc/html/left.jpg" alt="[Up]" /></a>
+<a href="../../../doc/html/index.html"><img class="arrow" src="../../../doc/html/up.jpg" alt="[Top]" /></a>
+</div><h2>Documentation for package &lsquo;mozzie&rsquo; version 0.1.0</h2>
+
+<ul><li><a href="../DESCRIPTION">DESCRIPTION file</a>.</li>
+</ul>
+
+<h2>Help Pages</h2>
+
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="find_mate.html">find_mate</a></td>
+<td>Finds a mate for a female mosquitoes of breeding age.</td></tr>
+<tr><td style="width: 25%;"><a href="hello.html">hello</a></td>
+<td>Hello, World!</td></tr>
+<tr><td style="width: 25%;"><a href="initialise_adults.html">initialise_adults</a></td>
+<td>Creates an initial data.table of adult agents. Since this is an initial spread, some data is made up/dummy: for example, we don't know the ID of the parents. Latitude/Longitude of agents is randomly determined through another function 'init_position' and added to the data.table after construction.</td></tr>
+<tr><td style="width: 25%;"><a href="initialise_eggs.html">initialise_eggs</a></td>
+<td>Creates a data.table of newly laid eggs to add to the juvenile data.table.</td></tr>
+<tr><td style="width: 25%;"><a href="initialise_juveniles.html">initialise_juveniles</a></td>
+<td>Creates an initial data.table of juvenile agents. Since this is an initial spread, some data is made up/dummy: for example, we don't know the ID of the parents. Latitude/Longitude of agents is randomly determined and added to the data.table after construction.</td></tr>
+<tr><td style="width: 25%;"><a href="initialise_release.html">initialise_release</a></td>
+<td>Simulates a release of Wolbachia-carrying mosquitoes. Releases in this experiment are always adults. Much of this is functionally similar to initialise_adults. Since this is a release, some data is made up/dummy: for example, we don't know the ID of the parents. Latitude/Longitude of agents is given by data supplied by the WMP.</td></tr>
+<tr><td style="width: 25%;"><a href="initialize_enzyme.html">initialize_enzyme</a></td>
+<td>Initialises the Enzyme Kinetic model lookup table for the model run. The EKM is how we dictate the development rate of agents. The EKM model is the same one used in Focks 1993. Input data is in CELSIUS, EKM works with KELVIN.</td></tr>
+<tr><td style="width: 25%;"><a href="init_juv_stage.html">init_juv_stage</a></td>
+<td>Roughly determines the stage of a juvenile clutch given numerical 'age'. Needs checking with literature, or replace with better method.</td></tr>
+<tr><td style="width: 25%;"><a href="init_position.html">init_position</a></td>
+<td>Generates random 'starting' positions for adult agents. Uses boundary data for simulation region. Draws a polygon from the boundary points given in boundaryDat and picks N randomly spaced points within it. Includes a boundary check: will keep drawing points until there are N in the region/polygon. Requires package 'sp' for Polygon object.</td></tr>
+<tr><td style="width: 25%;"><a href="juv_emergence.html">juv_emergence</a></td>
+<td>Runs the 'juvenile emergence' step. Determines which juvenile agents are to age into adult agents, and calls 'juv_to_adult' on them. IMPORTANT: this should update 'mozzie.dt' and 'juv.dt' on a global scale.</td></tr>
+<tr><td style="width: 25%;"><a href="juv_stage_update.html">juv_stage_update</a></td>
+<td>Determines the juvenile agents that develop into the next stage, and updates the development stage of these juveniles. Once 'enzyme' exceeds 0.95, a juvenile agent develops to the next stage. Recall that Stage 1: egg, 2: larvae, 3: pupae. Any pupae that are to develop into the next stage, i.e. adulthood, should have been handled by 'juv_emergence'. IMPORTANT: this should update 'juv.dt' on a global scale.</td></tr>
+<tr><td style="width: 25%;"><a href="juv_to_adult.html">juv_to_adult</a></td>
+<td>Takes a juvenile agent and splits it into adult ages This is to simulate 'emergence' of juveniles form aquatic stage. Many variables stay the same, like motherID, but new ones are added or changed Agents also undergo one motility event when they emerge. This becomes their new lat/long.</td></tr>
+<tr><td style="width: 25%;"><a href="produce_eggs.html">produce_eggs</a></td>
+<td>Determines which mothers are ready to lay eggs and calls 'initialise_eggs'. Conditions to be satisfied for a mother to lay a clutch of eggs:        1. Has a mate        2. Enzyme Kinetic Score &gt; 1 and gonoCycle = 0 OR        3. EKS &gt; 1.58 and gonoCycle = 1 OR        4. EKS &gt; 2.16 and gonoCycle = 2.</td></tr>
+<tr><td style="width: 25%;"><a href="random_dispersal.html">random_dispersal</a></td>
+<td>Random dispersal of a single agent according to distance formulae.</td></tr>
+<tr><td style="width: 25%;"><a href="temperature_chart.html">temperature_chart</a></td>
+<td>Calculates the average daily temperature over the simulation period. Temperature calculations are in Celcius.</td></tr>
+<tr><td style="width: 25%;"><a href="update_enzyme.html">update_enzyme</a></td>
+<td>Gets the amount by which the Enzyme Kinetic Score for an agent will increase. This value is added to their current EKS. This function works as a 'lookup' for the EKS data, which is all calculated at the beginning of the simulation- this function just grabs it</td></tr>
+<tr><td style="width: 25%;"><a href="update_juv_stage.html">update_juv_stage</a></td>
+<td>Updates the development stage of juvenile agents.</td></tr>
+</table>
+</body></html>

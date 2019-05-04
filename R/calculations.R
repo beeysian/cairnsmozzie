@@ -27,10 +27,6 @@ init_position <- function(boundaryDat, N){
 #'
 #' @param age 'Age' of clutch in days.
 #' @return Juvenile stage: 0 for egg, 1 for larval, 3 for pupal.
-#' @examples
-#' init_juv_stage(1)
-#' init_juv_stage(7)
-#' init_juv_stage(13)
 init_juv_stage <- function(age){
   if(age >= 0 & age <= 5){
     stage <- 1

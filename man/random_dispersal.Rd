@@ -2,14 +2,7 @@
 % Please edit documentation in R/updates.R
 \name{random_dispersal}
 \alias{random_dispersal}
-\title{Random dispersal of a single agent according to distance formulae.
-Method we use: distance and bearing, Haversine method
-Note we work in units of radians and kilometres.
-\begin{enumerate}{
- \item Calculate 'd', the distance travelled
- \item Calculate 'theta', the direction or bearing travelled
- \item Convert to lat and long.
-}}
+\title{Random dispersal of a single agent according to distance formulae.}
 \usage{
 random_dispersal(lat, long, lambda)
 }
@@ -24,12 +17,11 @@ random_dispersal(lat, long, lambda)
 Updated \code{lat} and \code{long} of agent, as a list.
 }
 \description{
-Random dispersal of a single agent according to distance formulae.
 Method we use: distance and bearing, Haversine method
 Note we work in units of radians and kilometres.
-\begin{enumerate}{
- \item Calculate 'd', the distance travelled
- \item Calculate 'theta', the direction or bearing travelled
- \item Convert to lat and long.
+\enumerate{
+ \item{Calculate 'd', the distance travelled}
+ \item{Calculate 'theta', the direction or bearing travelled}
+ \item{Convert to lat and long.}
 }
 }

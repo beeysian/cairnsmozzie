@@ -1,0 +1,83 @@
+find_mate               Finds a mate for a female mosquitoes of
+                        breeding age.
+hello                   Hello, World!
+init_juv_stage          Roughly determines the stage of a juvenile
+                        clutch given numerical 'age'. Needs checking
+                        with literature, or replace with better method.
+init_position           Generates random 'starting' positions for adult
+                        agents. Uses boundary data for simulation
+                        region. Draws a polygon from the boundary
+                        points given in boundaryDat and picks N
+                        randomly spaced points within it. Includes a
+                        boundary check: will keep drawing points until
+                        there are N in the region/polygon. Requires
+                        package 'sp' for Polygon object.
+initialise_adults       Creates an initial data.table of adult agents.
+                        Since this is an initial spread, some data is
+                        made up/dummy: for example, we don't know the
+                        ID of the parents. Latitude/Longitude of agents
+                        is randomly determined through another function
+                        'init_position' and added to the data.table
+                        after construction.
+initialise_eggs         Creates a data.table of newly laid eggs to add
+                        to the juvenile data.table.
+initialise_juveniles    Creates an initial data.table of juvenile
+                        agents. Since this is an initial spread, some
+                        data is made up/dummy: for example, we don't
+                        know the ID of the parents. Latitude/Longitude
+                        of agents is randomly determined and added to
+                        the data.table after construction.
+initialise_release      Simulates a release of Wolbachia-carrying
+                        mosquitoes. Releases in this experiment are
+                        always adults. Much of this is functionally
+                        similar to initialise_adults. Since this is a
+                        release, some data is made up/dummy: for
+                        example, we don't know the ID of the parents.
+                        Latitude/Longitude of agents is given by data
+                        supplied by the WMP.
+initialize_enzyme       Initialises the Enzyme Kinetic model lookup
+                        table for the model run. The EKM is how we
+                        dictate the development rate of agents. The EKM
+                        model is the same one used in Focks 1993. Input
+                        data is in CELSIUS, EKM works with KELVIN.
+juv_emergence           Runs the 'juvenile emergence' step. Determines
+                        which juvenile agents are to age into adult
+                        agents, and calls 'juv_to_adult' on them.
+                        IMPORTANT: this should update 'mozzie.dt' and
+                        'juv.dt' on a global scale.
+juv_stage_update        Determines the juvenile agents that develop
+                        into the next stage, and updates the
+                        development stage of these juveniles. Once
+                        'enzyme' exceeds 0.95, a juvenile agent
+                        develops to the next stage. Recall that Stage
+                        1: egg, 2: larvae, 3: pupae. Any pupae that are
+                        to develop into the next stage, i.e. adulthood,
+                        should have been handled by 'juv_emergence'.
+                        IMPORTANT: this should update 'juv.dt' on a
+                        global scale.
+juv_to_adult            Takes a juvenile agent and splits it into adult
+                        ages This is to simulate 'emergence' of
+                        juveniles form aquatic stage. Many variables
+                        stay the same, like motherID, but new ones are
+                        added or changed Agents also undergo one
+                        motility event when they emerge. This becomes
+                        their new lat/long.
+produce_eggs            Determines which mothers are ready to lay eggs
+                        and calls 'initialise_eggs'. Conditions to be
+                        satisfied for a mother to lay a clutch of eggs:
+                        1. Has a mate 2. Enzyme Kinetic Score > 1 and
+                        gonoCycle = 0 OR 3. EKS > 1.58 and gonoCycle =
+                        1 OR 4. EKS > 2.16 and gonoCycle = 2.
+random_dispersal        Random dispersal of a single agent according to
+                        distance formulae.
+temperature_chart       Calculates the average daily temperature over
+                        the simulation period. Temperature calculations
+                        are in Celcius.
+update_enzyme           Gets the amount by which the Enzyme Kinetic
+                        Score for an agent will increase. This value is
+                        added to their current EKS. This function works
+                        as a 'lookup' for the EKS data, which is all
+                        calculated at the beginning of the simulation-
+                        this function just grabs it
+update_juv_stage        Updates the development stage of juvenile
+                        agents.

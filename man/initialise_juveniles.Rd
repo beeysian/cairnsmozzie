@@ -39,6 +39,3 @@ enzyme:     Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX
 pDeath:     Probability of death.
 }
 
-\examples{
-initialise_juveniles(10)
-}

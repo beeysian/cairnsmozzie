@@ -44,11 +44,11 @@ juv_stage_update <- function(juv.dt){
 
 #' Determines which mothers are ready to lay eggs and calls \code{initialise_eggs}.
 #' Conditions to be satisfied for a mother to lay a clutch of eggs:
-#' \begin{enumerate}{
-#'  \item Has a mate
-#'  \item Enzyme Kinetic Score > 1 and gonoCycle = 0 OR
-#'  \item EKS > 1.58 and gonoCycle = 1 OR
-#'  \item EKS > 2.16 and gonoCycle = 2.
+#' \enumerate{
+#'  \item {Has a mate}
+#'  \item {Enzyme Kinetic Score > 1 and gonoCycle = 0 OR}
+#'  \item {EKS > 1.58 and gonoCycle = 1 OR}
+#'  \item {EKS > 2.16 and gonoCycle = 2.}
 #' }
 #'
 #' IMPORTANT: This should update \code{juv.dt} on a global scale.

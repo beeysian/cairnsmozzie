@@ -1,15 +1,17 @@
 #' Random dispersal of a single agent according to distance formulae.
+#'
 #' Method we use: distance and bearing, Haversine method
 #' Note we work in units of radians and kilometres.
-#' \begin{enumerate}{
-#'  \item Calculate 'd', the distance travelled
-#'  \item Calculate 'theta', the direction or bearing travelled
-#'  \item Convert to lat and long.
+#' \enumerate{
+#'  \item{Calculate 'd', the distance travelled}
+#'  \item{Calculate 'theta', the direction or bearing travelled}
+#'  \item{Convert to lat and long.}
 #' }
 #' @param lat Latitude or 'y' coordinate of agent.
 #' @param long Longitude or 'x' coordinate of agent.
 #' @param lambda Shape parameter for distance calculation. ABC parameter.
 #' @return Updated \code{lat} and \code{long} of agent, as a list.
+#' @export
 random_dispersal <- function(lat, long, lambda){
   d        <- rexp(1,1/lambda) #formula given in documentation
   theta.d  <- runif(1,0,2*pi) #formula given in documentation - distance in radians
@@ -40,33 +42,32 @@ random_dispersal <- function(lat, long, lambda){
 #' @param stage Stage of agent. 1: egg, 2: larvae, 3: pupae, 4: adult.
 #' @param timestep Current timestep.
 #' @return Amount by which an agent's EKS will increase for that timestep.
-#' @examples
-#' update_enzyme(1, 1)
-#' update_enzyme(4, 13)
-update_enzyme <- function(type, time){
-  if(type == 1){
-    EKSUpdate <- EKMChart[[1]][time]
+update_enzyme <- function(stage, timestep){
+  if(stage == 1){
+    EKSUpdate <- EKMChart[[1]][timestep]
   }
-  else if(type == 2){
-    EKSUpdate <- EKMChart[[2]][time]
+  else if(stage == 2){
+    EKSUpdate <- EKMChart[[2]][timestep]
   }
 
-  else if(type == 3){
-    EKSUpdate <- EKMChart[[3]][time]
+  else if(stage == 3){
+    EKSUpdate <- EKMChart[[3]][timestep]
   } else{
-    EKSUpdate <- EKMChart[[4]][time]
+    EKSUpdate <- EKMChart[[4]][timestep]
   }
   return(EKSUpdate)
 }
 
 #' Finds a mate for a female mosquitoes of breeding age.
+#'
 #' We draw a box of 'radius' \code{k} around the agent.
 #' \code{k} is an ABC parameter and usually between 11m to 100m.
 #' Note that here we mainly deal with ID number, an actual data.table variable,
 #'  and not the agent's index in the main data.table.
 #'
-#' @section Algorithm for finding mate
-#' \begin{itemize}{
+#' @section Algorithm:
+#' Algorithm for finding a mate:
+#' \itemize{
 #'  \item{If there are no males within box, return -1 for no mate.}
 #'  \item{If there is 1 male, that is the new mate.}
 #'  \item{If there is >1 male, randomly choose one.}
@@ -77,20 +78,17 @@ update_enzyme <- function(type, time){
 #'  each male mate is properly updated on a global scope.
 #' We assume that females only mate once.
 #'
-#' @section Who can mate?
-#' Recall that in order to mate, a female mosquito muse have:
-#' \begin{itemize}{
-#'  \item{EKS between 1.2 and 1.8 inclusive}
-#'  \item{gonoCycle 1, 2 or 3}
+#' @section Who can mate?:
+#' Recall that in order to mate, a female mosquito must have:
+#' \itemize{
+#'  \item{\code{enzyme} between 1.2 and 1.8 inclusive}
+#'  \item{\code{gonoCycle} 1, 2 or 3}
 #' }
 #'
 #' @param femID ID of female looking for mate.
 #' @param k Distance within which female mosquito 'searches' for mate. ABC parameter.
 #' @param max_daily_mates Number of times a male can mate in a day.
 #' @return \code{mateID} of agent, or -1 if agent does not find a mate.
-#' @examples
-#' add(1, 1)
-#' add(10, 1)
 find_mate <- function(femID, k, max_daily_mates){
   newMate  <- -1 #Function returns -1 if it does not find a mate
   position <- as.numeric(c("lat" = mozziedf$lat[femID],
@@ -180,12 +178,12 @@ find_mate <- function(femID, k, max_daily_mates){
 #' @param lambda Shape parameter for distance calculation. ABC parameter.
 #' @return A data.table of \code{N} adult agents.
 juv_to_adult <- function(juvID, idStart, pmale, lambda){
-  new.dt <- data.table(ID=idStart:(idStart+juvdf$clutchSize[[juvID]]-1), gender=numeric(juvdf$clutchSize[[juvID]]), lat=numeric(juvdf$clutchSize[[juvID]]), long=numeric(juvdf$clutchSize[[juvID]]), mateID=numeric(juvdf$clutchSize[[juvID]]), enzyme=numeric(juvdf$clutchSize[[juvID]]), age=numeric(juvdf$clutchSize[[juvID]]), gonoCycle=numeric(juvdf$clutchSize[[juvID]]) ,timeDeath=numeric(juvdf$clutchSize[[juvID]]) ,typeDeath=numeric(juvdf$clutchSize[[juvID]]), whereTrapped=numeric(juvdf$clutchSize[[juvID]]), motherID=numeric(juvdf$clutchSize[[juvID]]), fatherID=numeric(juvdf$clutchSize[[juvID]]), infStatus=numeric(juvdf$clutchSize[[juvID]]), releaseLoc=numeric(juvdf$clutchSize[[juvID]]))
+  new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1), gender=numeric(juv.dt$clutchSize[[juvID]]), lat=numeric(juv.dt$clutchSize[[juvID]]), long=numeric(juv.dt$clutchSize[[juvID]]), mateID=numeric(juv.dt$clutchSize[[juvID]]), enzyme=numeric(juv.dt$clutchSize[[juvID]]), age=numeric(juv.dt$clutchSize[[juvID]]), gonoCycle=numeric(juv.dt$clutchSize[[juvID]]) ,timeDeath=numeric(juv.dt$clutchSize[[juvID]]) ,typeDeath=numeric(juv.dt$clutchSize[[juvID]]), whereTrapped=numeric(juv.dt$clutchSize[[juvID]]), motherID=numeric(juv.dt$clutchSize[[juvID]]), fatherID=numeric(juv.dt$clutchSize[[juvID]]), infStatus=numeric(juv.dt$clutchSize[[juvID]]), releaseLoc=numeric(juv.dt$clutchSize[[juvID]]))
   new.dt$gender <- lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
 
   #We assume that mozzies disperse a bit from their original position when they hatch
   #CHECK boundaries
-  positions   <- lapply(1:juvdf$clutchSize[[juvID]], function(x) random_dispersal(juvdf$lat[[juvID]],juvdf$long[[juvID]])) #creates a list of lats and longs
+  positions   <- lapply(1:juv.dt$clutchSize[[juvID]], function(x) random_dispersal(juv.dt$lat[[juvID]],juv.dt$long[[juvID]], lambda)) #creates a list of lats and longs
   positions   <- do.call(rbind,positions)
   new.dt$lat  <- positions[,1]
   new.dt$long <- positions[,2]
@@ -201,14 +199,33 @@ juv_to_adult <- function(juvID, idStart, pmale, lambda){
   #new.dt$motherID <- -1
   #new.dt$fatherID <- -1
 
-  new.dt$motherID     <- juvdf$mother[[juvID]]
-  new.dt$fatherID     <- juvdf$father[[juvID]]
+  new.dt$motherID     <- juv.dt$mother[[juvID]]
+  new.dt$fatherID     <- juv.dt$father[[juvID]]
 
-  new.dt$infStatus    <- lapply(new.dt$infStatus, function(x) x<-rbinom(1,1,juvdf$infProb[juvID]))
-  #new.dt$infStatus <- juvdf$infProb[[juvID]] #FIX
+  new.dt$infStatus    <- lapply(new.dt$infStatus, function(x) x<-rbinom(1,1,juv.dt$infProb[juvID]))
+  #new.dt$infStatus <- juv.dt$infProb[[juvID]] #FIX
   new.dt$releaseLoc   <- -1
   new.dt$timeDeath    <- -1
   new.dt$typeDeath    <- -1
 
   return(new.dt)
+}
+
+#' Updates the development stage of juvenile agents.
+#'
+#' If a juvenile agent's Enzyme Kinetic Score is greater than 0.95,
+#' they age up to the next development stage:
+#' \itemize{
+#' \item{Egg to larvae OR}
+#' \item{Larvae to pupae.}
+#' }
+#' Pupae development into adult agents should have already been handled.
+#' This function runs on the entire list of juvenile agents at once.
+#' @param stage List of all juvenile stages from juv.dt.
+#' @param enzyme List of all juvenile agent enzyme score from juv.dt.
+#' @return Updated \code{stage} and \code{enzyme} of agents, as a list.
+#' @export
+update_juv_stage <- function(stage,enzyme){
+
+
 }

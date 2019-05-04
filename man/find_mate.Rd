@@ -2,11 +2,7 @@
 % Please edit documentation in R/updates.R
 \name{find_mate}
 \alias{find_mate}
-\title{Finds a mate for a female mosquitoes of breeding age.
-We draw a box of 'radius' \code{k} around the agent.
-\code{k} is an ABC parameter and usually between 11m to 100m.
-Note that here we mainly deal with ID number, an actual data.table variable,
- and not the agent's index in the main data.table.}
+\title{Finds a mate for a female mosquitoes of breeding age.}
 \usage{
 find_mate(femID, k, max_daily_mates)
 }
@@ -21,13 +17,32 @@ find_mate(femID, k, max_daily_mates)
 \code{mateID} of agent, or -1 if agent does not find a mate.
 }
 \description{
-Finds a mate for a female mosquitoes of breeding age.
 We draw a box of 'radius' \code{k} around the agent.
 \code{k} is an ABC parameter and usually between 11m to 100m.
 Note that here we mainly deal with ID number, an actual data.table variable,
  and not the agent's index in the main data.table.
 }
-\examples{
-add(1, 1)
-add(10, 1)
+\section{Algorithm}{
+
+Algorithm for finding a mate:
+\itemize{
+ \item{If there are no males within box, return -1 for no mate.}
+ \item{If there is 1 male, that is the new mate.}
+ \item{If there is >1 male, randomly choose one.}
 }
+Note that there is a max. number of agents that a male can mate with in a day,
+ given by \code{max_daily_mates}.
+It is important in testing to ensure that the \code{gonoCycle} variable for
+ each male mate is properly updated on a global scope.
+We assume that females only mate once.
+}
+
+\section{Who can mate?}{
+
+Recall that in order to mate, a female mosquito must have:
+\itemize{
+ \item{\code{enzyme} between 1.2 and 1.8 inclusive}
+ \item{\code{gonoCycle} 1, 2 or 3}
+}
+}
+

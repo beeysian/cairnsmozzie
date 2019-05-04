@@ -1,0 +1,254 @@
+* using log directory ‘/Users/sarah/mozzie/..Rcheck’
+* using R version 3.5.1 (2018-07-02)
+* using platform: x86_64-apple-darwin15.6.0 (64-bit)
+* using session charset: UTF-8
+* checking for file ‘./DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘mozzie’ version ‘0.1.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... WARNING
+Found the following executable files:
+  .git/objects/02/b21d221bf07c16392a17af5b78af348d7a302a
+  .git/objects/06/37a088a01e8ddab3bf3fa98dbe804cbde1a0dc
+  .git/objects/0b/598b84f39a98b9ec714df65c5cce27d8c4c880
+  .git/objects/0d/107391d2891b825c787eb170f31b655fcc58d1
+  .git/objects/0e/24b84668267375c3af4d7b1fa78f9deec24784
+  .git/objects/0f/a7c4b8817591c2dff2b3997d2566320ac6d9fc
+  .git/objects/13/ebd3970bf9ac36f4b19110c5f069afe4e690b4
+  .git/objects/15/156f73d1e8133f350d5a947e23dd3c223326d1
+  .git/objects/17/43e40fec30e357993d33f5cb053bf027524dc8
+  .git/objects/1a/25d482b8fbab3237611288c00d3197f0df09ee
+  .git/objects/1c/145f59857836e23bc5bc86018f36fba05011d0
+  .git/objects/1d/2b22e8b62200fd597619fcba0fc210f5f29143
+  .git/objects/1f/11c0b9fff5c5df5a8af36a36e0f6ef21c9de49
+  .git/objects/1f/228e20ff8388a25e3c0748810b4fcc5948cf11
+  .git/objects/1f/7f72bc837ed529b6e4c9da7948c0a899e67345
+  .git/objects/25/571fc19537e7f19f14d1002f91701f5c8ad4de
+  .git/objects/26/9a6641d023912ef38e511e6ff9cdf7e58fc1ab
+  .git/objects/26/b1f90d75900a32b2c0bd12a106dab96c8ed5d4
+  .git/objects/2a/c0517e4e2a7561e98c3efa2d1129376167f7fb
+  .git/objects/2b/1bef112ac6921abda6162a65dbfcd8c6d55c80
+  .git/objects/31/88be1d74779bbc0b62aeb3200744989e8a6385
+  .git/objects/32/390ac748f7dec2815251a9b457eb68549ef1b6
+  .git/objects/32/960f8ced39dd5eade0f15d41e275b2dc8d4c70
+  .git/objects/36/4f0326b7fd9c4166a5dce77d07df0bc5c2df34
+  .git/objects/37/080cdd9eb5abf7177159f662a113b81716f40a
+  .git/objects/3e/327b680748e1e9e69047617a49cd02cfdd7951
+  .git/objects/3f/2ff2d6cc8f257ffcade7ead1ca4042c0e884b9
+  .git/objects/42/34104db61f0404ca6862197febaf4031969cbd
+  .git/objects/44/c0a7f945bb459010f86632b674267b2031a332
+  .git/objects/45/1c982c525f5a5b427de3b31e2e9eb01926e46b
+  .git/objects/45/d7a756728a65ce2c244afbc657ac475a629aae
+  .git/objects/47/7f8916e1fcfd4b4f368026b10687e76a401f74
+  .git/objects/49/7f8bfcfb9d13ad61d14d79963641e9aeab41b0
+  .git/objects/4a/b86bea7b6c7a491ed20fed14c47544d7ee0511
+  .git/objects/4c/c05389539b7291956405cf75ef51117f30b18f
+  .git/objects/4d/3c9a416631288a72c8e894ad8c098cebb4287e
+  .git/objects/54/2d499f639f584184cda6db174f251d4599d39e
+  .git/objects/56/99bd08da00d9673085fb2e13f94fcf2c603b92
+  .git/objects/59/dcc1d66c7cfb2ebc1ec661a03ff108d6019d86
+  .git/objects/5a/146b09216261d7b886a665c0090ab3658135bc
+  .git/objects/5b/2756990b08ceb53f693645a05962d430e1cce7
+  .git/objects/61/fac249da460a24ce5e6645523faa1e898eb710
+  .git/objects/62/566ca5f4b4e0fabd8004c88acd68d1a639d624
+  .git/objects/65/c47c7f1eab1b61e2061b6b501d2c54513d844a
+  .git/objects/66/4b60a08ae11d7647431186b28979ee38cb5161
+  .git/objects/68/930c232e911a34903eb4ae6e7a47a4ba56ef1f
+  .git/objects/69/10636099d04019cd5e6824d31f932a4a6da763
+  .git/objects/70/e784f1284476dd66120db87b70172f788aea1b
+  .git/objects/70/e951d251df26a54b5ba50ff2bfcab918ff5851
+  .git/objects/78/cae6d67463c6daf86c58b2cd09ee5ae39ae00d
+  .git/objects/78/d5c8a9ea59f9b94ccc6cef63bd0d2aa400e7af
+  .git/objects/79/8984d1fb10d8c57e464dbea0a8d9827801b05e
+  .git/objects/7a/73a41bfdf76d6f793007240d80983a52f15f97
+  .git/objects/7b/3d64314fc9811ae31b1dbf838b2a76ec38b9f7
+  .git/objects/7d/bb9e683b1132d7d3176e53ffa99a2ac38e0a2f
+  .git/objects/7d/ccf29ee12e3e301c8ad93055797d39745aaed4
+  .git/objects/7e/10a222099269d8bbf98555152067f65f6d75b9
+  .git/objects/81/cf276eb472d7fab8b421f2bd53455f5ff548ba
+  .git/objects/82/0c0629cc02e212e4a9f6cdaa7d6edb660eb1f8
+  .git/objects/89/0726933d78e769fbee31c23b620530471e831b
+  .git/objects/8a/e1d481e357c4978d1791200add872e454fd9cc
+  .git/objects/8b/edceec8aac1b6a70c2d280a75bc9f2f5061873
+  .git/objects/8f/faa92ef81ba40aaa30ff7f40c8621abac24458
+  .git/objects/91/114bf2f2bba5e0c5252e75018da19b869776f1
+  .git/objects/92/20dad752871d56075c165fa29466e5b43d7763
+  .git/objects/9e/35c4cf29cd2c7ff335aeebf3c6bb83689bd619
+  .git/objects/a1/1a01c6e539071cb179fa8753b2ffbbdbb7aef5
+  .git/objects/a5/3879e3a11b87f1a9e783ce0a20b1d54a83fb22
+  .git/objects/a6/b06e36a9b58e1dabd91cc46efa81650b8da927
+  .git/objects/a6/e39801efa94683083e5ae26cda1decaf8a66e0
+  .git/objects/b6/5c0e62006c6a208c9e91f6dda5f8ebb6cc0a0b
+  .git/objects/b8/aabde3c1fc03c3d594788048594f0ebcb86aec
+  .git/objects/c0/ac850f82a9903173c52ed23a39e5741e0447d5
+  .git/objects/c1/f53ab7b3ba7de84cbff1228ba2d80a3ca56947
+  .git/objects/c3/507bb713b7efa7f0549be247060b2b5686d00d
+  .git/objects/c3/b9262424bb1157ee1105b64f6fb71620cd2138
+  .git/objects/c5/32ed1c1a479ae59b46bd0cc574bbee7c3cb83a
+  .git/objects/ca/0556a230b9eca5cdee0091adbda47ca65ba2ef
+  .git/objects/cd/c5fe69d359986a7e161ce9c015674a8dad56fa
+  .git/objects/d0/028aac834310083e23473592a5454b7969aa3a
+  .git/objects/d0/4edf7d39f9f48f4150ae4da3d26280398a3a25
+  .git/objects/d2/c9d72023a85725b9fd86e73532a6a148ec7d90
+  .git/objects/d2/dad230e545bc649930d1703a8bc484ab119481
+  .git/objects/d2/fbe70609098eff0b0b2c436a801ef6a3ae4625
+  .git/objects/d6/1f1bdea5a5b6bb748060e6cdd5619150b7078f
+  .git/objects/d7/5f824ec6278db24891505b14ab3d915514dba7
+  .git/objects/de/41a6874ebbfd5bdcf99dd3a1f7403dff9cf299
+  .git/objects/df/4feac9632a9023b2c0e25f9ae4324540b98048
+  .git/objects/e1/4595c85ed3093c0eb6415cedd6be4a0870dbba
+  .git/objects/e6/7995dd75508a0d8a22ea0b5dcb0f25d9274d35
+  .git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+  .git/objects/e8/83a2486663e4e86418b5a1b06b94a345351e3f
+  .git/objects/ee/d6d106ce5179c869fcab5b6668078445e7a1f7
+  .git/objects/f0/128951800cf27e4d113448aac297bac142821b
+  .git/objects/f3/b9663da8010c7cbb3331c8146a2f2ce2f5cdc6
+  .git/objects/fb/f98ccfa38b5a3846641e5d6477ca071199d3d0
+  .git/objects/fc/9ed0e3aab65373f5b95592b0b90f300b3059cf
+Source packages should not contain undeclared executable files.
+See section ‘Package structure’ in the ‘Writing R Extensions’ manual.
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .DS_Store
+  .RData
+  .Rhistory
+  .gitignore
+  R/.DS_Store
+  inst/.DS_Store
+  tests/.DS_Store
+  vignettes/.gitignore
+  ..Rcheck
+  .Rd2pdf25569
+  .Rd2pdf25581
+  .Rproj.user
+  .git
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘mozzie’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Checking should be performed on sources prepared by ‘R CMD build’.
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following directory with the name of a check directory:
+  ./..Rcheck
+Most likely, these were included erroneously.
+Found the following directories with names of Rd2pdf directories:
+  ./.Rd2pdf25569
+  ./.Rd2pdf25581
+Most likely, these were included erroneously.
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... NOTE
+Namespaces in Imports field not imported from:
+  ‘MCMCpack’ ‘data.table’ ‘dplyr’ ‘flexsurv’ ‘geosphere’ ‘ggplot2’
+  ‘ggvis’ ‘magrittr’ ‘progress’ ‘rbenchmark’ ‘sp’
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+find_mate: no visible binding for global variable ‘mozziedf’
+find_mate: no visible binding for '<<-' assignment to ‘mozziedf’
+init_position: no visible global function definition for ‘Polygon’
+init_position: no visible global function definition for ‘spsample’
+init_position: no visible global function definition for
+  ‘point.in.polygon’
+initialise_adults: no visible global function definition for ‘setNames’
+initialise_adults : <anonymous>: no visible global function definition
+  for ‘rbinom’
+initialise_adults : <anonymous>: no visible global function definition
+  for ‘runif’
+initialise_adults: no visible binding for global variable ‘boundaryDat’
+initialise_eggs: no visible global function definition for ‘data.table’
+initialise_eggs: no visible binding for global variable ‘mozziedf’
+initialise_eggs: no visible global function definition for ‘na.omit’
+initialise_eggs: no visible binding for global variable ‘eta_2’
+initialise_eggs: no visible binding for global variable ‘eta_1’
+initialise_eggs: no visible binding for global variable ‘p_1’
+initialise_eggs: no visible binding for global variable ‘alpha’
+initialise_eggs: no visible global function definition for ‘:=’
+initialise_juveniles: no visible global function definition for
+  ‘setNames’
+initialise_juveniles : <anonymous>: no visible global function
+  definition for ‘runif’
+initialise_juveniles: no visible binding for global variable ‘param’
+initialise_juveniles : <anonymous>: no visible binding for global
+  variable ‘boundaryDat’
+initialise_release: no visible global function definition for
+  ‘setNames’
+initialise_release : <anonymous>: no visible global function definition
+  for ‘rbinom’
+initialise_release: no visible binding for global variable ‘mozziedf’
+initialise_release : <anonymous>: no visible global function definition
+  for ‘runif’
+initialize_enzyme: no visible binding for global variable ‘const’
+initialize_enzyme: no visible global function definition for
+  ‘as.data.table’
+juv_emergence: no visible binding for global variable ‘idStart’
+juv_emergence: no visible binding for global variable ‘pmale’
+juv_emergence: no visible binding for global variable ‘lambda’
+juv_emergence: no visible global function definition for ‘%>%’
+juv_emergence: no visible global function definition for ‘%<>%’
+juv_emergence: no visible global function definition for ‘rbindlist’
+juv_emergence: no visible global function definition for
+  ‘as.data.table’
+juv_emergence: no visible binding for '<<-' assignment to ‘mozzie.dt’
+juv_emergence: no visible binding for global variable ‘mozzie.dt’
+juv_to_adult: no visible global function definition for ‘data.table’
+juv_to_adult: no visible binding for global variable ‘juv.dt’
+juv_to_adult : <anonymous>: no visible global function definition for
+  ‘rbinom’
+juv_to_adult : <anonymous>: no visible binding for global variable
+  ‘juv.dt’
+random_dispersal: no visible global function definition for ‘rexp’
+random_dispersal: no visible global function definition for ‘runif’
+update_enzyme: no visible binding for global variable ‘EKMChart’
+Undefined global functions or variables:
+  %<>% %>% := EKMChart Polygon alpha as.data.table boundaryDat const
+  data.table eta_1 eta_2 idStart juv.dt lambda mozzie.dt mozziedf
+  na.omit p_1 param pmale point.in.polygon rbindlist rbinom rexp runif
+  setNames spsample
+Consider adding
+  importFrom("stats", "na.omit", "rbinom", "rexp", "runif", "setNames")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking files in ‘vignettes’ ... WARNING
+Files in the 'vignettes' directory but no files in 'inst/doc':
+  ‘mozzie-vignette.Rmd’
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ... OK
+  Running ‘testthat.R’
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes in ‘inst/doc’ ... WARNING
+Package vignette without corresponding PDF/HTML:
+   ‘mozzie-vignette.Rmd’
+
+* checking running R code from vignettes ... NONE
+* checking re-building of vignette outputs ... OK
+* checking PDF version of manual ... OK
+* DONE
+Status: 4 WARNINGs, 4 NOTEs

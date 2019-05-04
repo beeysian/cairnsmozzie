@@ -45,14 +45,14 @@ temperature_chart <- function(mindf, maxdf, noTimeSteps){
 #' Suffixes E, L, P, G for the constants refer to each of the
 #' development stages.
 #'
-#' @section "Why do you multiply by 24?"
+#' @section "Why do you multiply by 24?":
 #' We multiply by 24 since timesteps are in days, and EKM model
 #' is in timestep unit of hours.
 #'
 #' @param dailyTemps Dataframe of daily average temperatures as output from
 #' function temperature_chart
 #' @return Chart of EKM updates for each development stage for each day.
-initializeEnzyme <- function(dailyTemps){
+initialize_enzyme <- function(dailyTemps){
   kelvinTemps <- dailyTemps + const$KELV_CONV
 
   EKM_egg    <- 24*((const$RHO_E*(kelvinTemps/298)*exp((const$HA_E/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_E/const$R)*(((1/const$THALF_E)-(1/kelvinTemps))))))

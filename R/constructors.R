@@ -6,7 +6,8 @@
 #' after construction.
 #'
 #' @section Data.table variables and initialisation:
-#' ID:     Unique ID number of agent.
+#' \itemize{
+#' \item{ID:     Unique ID number of agent.}}
 #' gender: Male is 0, female is 1. Sampled by 1 Binomial trial as opposed to a
 #'         Bernoulli trial as Bernoulli requires another package.
 #' mateID: Unique ID of their mate. Since no initial mosquitoes will have a mate
@@ -32,8 +33,6 @@
 #' @param N The number of initial adult agents.
 #' @param pmale Probability of being male.
 #' @return A data.table of \code{N} adult agents.
-#' @examples
-#' initialise_adults(10, 0.45)
 initialise_adults <- function(N,pmale){
   noVariables <- 13
   init.dt <- setNames(data.frame(matrix(ncol = noVariables, nrow = N)),
@@ -86,22 +85,20 @@ initialise_adults <- function(N,pmale){
 #' pDeath:     Probability of death.
 #' @param Njuv The number of initial juvenile agents.
 #' @return A data.table of \code{Njuv} juvenile agents.
-#' @examples
-#' initialise_juveniles(10)
 initialise_juveniles <- function(Njuv){
   juv.dt <- setNames(data.frame(matrix(ncol = 10, nrow = Njuv)),
           c("motherID","fatherID","age","stage" ,"infProb", "lat","long","clutchSize","enzyme","pDeath"))
   juv.dt$motherID <- -1
   juv.dt$fatherID <- -1
   juv.dt$age      <- lapply(juv.dt$age, function(x) x <- round(runif(1, min=0, max=14),0)) #Uniform between 0 and 14 as a quick fix- FIX
-  juv.dt$stage    <- mapply(FUN = initJuvStage, juv.dt$age)
+  juv.dt$stage    <- mapply(FUN = init_juv_stage, juv.dt$age)
 
   #this can be replaced with a binary for inf/noninf since fringe cases lead to CI
   juv.dt$infProb  <- 0 #dummy setup, this will be sampled in RABC (also need correct value from Carla)
 
-  juv.dt$clutchSize <- eta_1 #since these will always be wild type
+  juv.dt$clutchSize <- param$eta_1 #since these will always be wild type
   juv.dt$enzyme   <- lapply(juv.dt$enzyme, function(x) x <- runif(1, min=0, max=0.95)) #CHANGE: this should not be uniform
-  juv.dt$pDeath   <- alpha #fix this. see removeNatDeath in Carla's code
+  juv.dt$pDeath   <- param$alpha #fix this. see removeNatDeath in Carla's code
 
   ##BUT for the moment we're just using the same method as the adult lat/long to get working prototype
   juv.dt$lat  <- lapply(juv.dt$lat, function (x) x<-round(runif(1, min = min(boundaryDat$Lat), max = max(boundaryDat$Lat)),6))
@@ -111,9 +108,10 @@ initialise_juveniles <- function(Njuv){
 }
 
 #' Creates a data.table of newly laid eggs to add to the juvenile data.table.
+#'
 #' Input is the indices of mothers attempting to lay eggs.
 #' Much of this code is regarding the handling of CI:
-#' \begin{itemize}{
+#' \itemize{
 #'  \item{Neither mother nor father carry Wolbachia: no Wolbachia in offspring}
 #'  \item{Mother carries Wolbachia: offspring have nonzero probability of carrying}
 #'  \item{Mother does not carry, father does: offspring suffer CI and won't hatch}
@@ -123,20 +121,22 @@ initialise_juveniles <- function(Njuv){
 #' Clutch sizes, as per literature, differ depending on Wolbachia status of mother.
 #' This is handled by the ABC parameter eta_1 and eta_2.
 #'
-#' @section Data.table variables and initialisation:
-#' motherID:   ID of mother.
-#' fatherID:   ID of father.
-#' age:        Age in days. Initialised at 0 since they're new!
-#' stage:      Development stage of clutch. Should only be 1 since these are eggs.
-#' infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
-#'               Incompatability, else infProb is nonzero.
-#' lat:        Initial north/south or 'y' coordinate of agent.
-#'               Should start with -16. Should be same as mother.
-#' long:       Initial east/west of 'x' coordinate of agent.
-#'               Should start with 145. Should be same as mother.
-#' clutchSize: Number of juveniles in the clutch.
-#' pDeath:     Probability of death.
-#' @param toLay The indices of mothers attempting to lay a clutch.
+#' @section data.table variables and initialisation:
+#' \itemize{
+#' \item{motherID:   ID of mother.}
+#' \item{fatherID:   ID of father.}
+#' \item{age:        Age in days. Initialised at 0 since they're new!}
+#' \item{stage:      Development stage of clutch. Should only be 1 since these are eggs.}
+#' \item{infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+#'                   Incompatability, else infProb is nonzero.}
+#' \item{lat:        Initial north/south or 'y' coordinate of agent.
+#'                   Should start with -16. Should be same as mother.}
+#' \item{long:       Initial east/west of 'x' coordinate of agent.
+#'                   Should start with 145. Should be same as mother.}
+#' \item{clutchSize: Number of juveniles in the clutch.}
+#' \item{pDeath:     Probability of death.}
+#' }
+#' @param toLay List of the indices of mothers attempting to lay a clutch.
 #' @return A data.table of juvenile agents in stage 1 corresponding to each mother in \code{toLay}.
 initialise_eggs <- function(toLay){
   noMothers <- length(toLay)
