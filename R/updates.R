@@ -90,55 +90,60 @@ update_enzyme <- function(stage, timestep){
 #' @param max_daily_mates Number of times a male can mate in a day.
 #' @return \code{mateID} of agent, or -1 if agent does not find a mate.
 find_mate <- function(femID, k, max_daily_mates){
-  newMate  <- -1 #Function returns -1 if it does not find a mate
-  position <- as.numeric(c("lat" = mozziedf$lat[femID],
-                           "long" = mozziedf$long[femID]))
+  new.mate <- -1 #Function returns -1 if it does not find a mate
+  position <- as.numeric(c("lat"  = mozzie.dt$lat[femID],
+                           "long" = mozzie.dt$long[femID]))
 
   #CHANGE: magic number to k
   bdary    <- c("latmin" = position[1]-0.00011, "latmax" = position[1]+0.00011,
                 "longmin" = position[2]-0.00011 , "longmax" = position[2]+0.00011)
   #CHECK EKS of males that can mate?
-  possibleMates <- which(mozziedf$lat >= bdary["latmin"] & mozziedf$lat <= bdary["latmax"] & mozziedf$long >= bdary["longmin"] & mozziedf$long <= bdary["longmax"] & mozziedf$gender == 0)
-  noBachelors   <- length(possibleMates)
-  #print(paste0("noBachelors: ",noBachelors))
-  if(noBachelors == 0){
-    newMate <- -1
+  possible.mates <- which(mozzie.dt$lat >= bdary["latmin"] & mozzie.dt$lat <= bdary["latmax"] & mozzie.dt$long >= bdary["longmin"] & mozzie.dt$long <= bdary["longmax"] & mozzie.dt$gender == 0)
+  no.bachelors   <- length(possible.mates)
+  #print(paste0("no.bachelors: ",no.bachelors))
+  if(no.bachelors == 0){
+    new.mate <- -1
     # print(paste0(femID, " no mate found"))
   }
-  else if(noBachelors == 1){
-    if(mozziedf[possibleMates]$gonoCycle >= max_daily_mates){
-      newMate <- -1 #even though there is only one male, he has mated too much today
+  else if(no.bachelors == 1){
+    if(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates){
+      new.mate <- -1 #even though there is only one male, he has mated too much today
       #print(paste0(femID, " 1 mate found, unsuitable"))
     }
     else{
-      newMate <- as.integer(possibleMates)
-      mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1
-
-      #return(mozziedf$ID[possibleMates]) #New mate is just the single male they found
+      new.mate <- as.integer(possible.mates)
+      mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1
+      #return(mozziedf$ID[possible.mates]) #New mate is just the single male they found
       #print(paste0(femID, " 1 mate found"))
     }
   }
   else{
-    if(length(which(mozziedf[possibleMates]$gonoCycle >= max_daily_mates)) == 0){
-      newMate <- sample(possibleMates)[1] #this randomly permutes the list of possible mates and then picks the one at the top of the pile
-      mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1 #increment number of mates of male by 1
+    if(length(which(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates)) == 0){
+      #Randomly permutes the list of possible mates and then picks the one at the top of the pile
+      new.mate <- sample(possible.mates)[1]
+      #Increment number of mates of male by 1
+      mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1
       #print(paste0(femID, " multiple mates, all ok"))
     }
     else{
-      possibleMates <- possibleMates[-(which(mozziedf[possibleMates]$gonoCycle >= max_daily_mates))] #remove males who have mated more than max_daily_mates in a day
-      #now we have one more condition to check for: if we drop some males from "possibleMates" we might end up dropping them all, so if we dropped them all we return -1
-      if(length(possibleMates) == 0){
+      #Remove males who have mated more than "max_daily_mates" number of times in a day
+      possible.mates <- possible.mates[-(which(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates))]
+      #Now we have one more condition to check for:
+      ##If we drop some males from "possible.mates" we might end up dropping them all,
+      ##so if we dropped them all we return -1
+      if(length(possible.mates) == 0){
         #print(paste0(femID, " multiple mates, had to drop some AND then ended up with none"))
-        newMate <- 1
+        new.mate <- 1
       }
       else{
-        newMate <- sample(possibleMates)[1] #this randomly permutes the list of possible mates and then picks the one at the top of the pile
-        mozziedf$gonoCycle[newMate] <<- mozziedf$gonoCycle[newMate] + 1 #increment number of mates by 1
+        #Randomly permutes the list of possible mates and then picks the one at the top of the pile
+        new.mate <- sample(possible.mates)[1]
+        mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1 #increment number of mates by 1
         #print(paste0(femID, " multiple mates, had to drop some"))
       }
     }
   }
-  return(newMate)
+  return(new.mate)
 }
 
 #' Takes a juvenile agent and splits it into adult ages
@@ -228,4 +233,16 @@ juv_to_adult <- function(juvID, idStart, pmale, lambda){
 update_juv_stage <- function(stage,enzyme){
 
 
+}
+
+#' Applies daily natural death rate to a juvenile clutch.
+#'
+#' Uses the exponential model of mortality (constant death rate at each timestep)
+#' @param clutch.size Size of clutch.
+#' @param alpha Natural death rate.
+#' @return Updated \code{clutch.size}.
+#' @export
+resize_clutch <- function(clutch.size, alpha){
+  new.size <- rbinom(1, size = clutch.size, prob = (1 - alpha))
+  return(new.size)
 }
