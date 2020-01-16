@@ -17,6 +17,8 @@ init_position <- function(boundaryDat, N){
     if(sum(point.in.polygon(samplePts$x,samplePts$y,boundaryDat$Long,boundaryDat$Lat)) >= N){
       i     <- 0
       posdf <- cbind(long=samplePts$x, lat=samplePts$y)
+      griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long)
+      posdf <- cbind(posdf, gridID = griddf)
       return(posdf)
     }
   }

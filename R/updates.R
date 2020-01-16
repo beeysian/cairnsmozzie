@@ -34,6 +34,23 @@ random_dispersal <- function(lat, long, lambda){
   return(new.pos)
 }
 
+#' Trapping of mosquitoes.
+#'
+#' This algorithm cycles through every trap in the region that is
+#' active at time t. Every adult mosquito within 'radius' phi/2 of the
+#' trap has a 50% chance of being trapped.
+#' ('Radius' here referring to a square of lenth phi.)
+#' Returns list of mosquito IDs that are to be trapped.
+#' @param trapID unique ID of trap
+#' @param phi phi/2 is the radius of influence of the trap.
+#' @param mozzie.dt data.table of adult agents
+#' @return List of mosquito IDs that are to be trapped.
+#' @export
+mosquito_trapping <- function(trapID, phi, mozzie.dt){
+
+
+}
+
 #' Gets the amount by which the Enzyme Kinetic Score for an agent will increase.
 #' This value is added to their current EKS.
 #' This function works as a 'lookup' for the EKS data, which is all calculated

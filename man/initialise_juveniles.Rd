@@ -25,17 +25,19 @@ Latitude/Longitude of agents is randomly determined and added to the
 }
 \section{Data.table variables and initialisation}{
 
-motherID:   ID of mother.
-fatherID:   ID of father.
-age:        Age in days. Initialised uniform randomly around what we would expect
-             young adults to be.
-stage:      Development stage of clutch. 1: egg, 2: larvae, 3: pupae.
-infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
-              Incompatability, else infProb is nonzero.
-lat:        Initial north/south or 'y' coordinate of agent. Should start with -16.
-long:       Initial east/west of 'x' coordinate of agent. Should start with 145.
-clutchSize: Number of juveniles in the clutch.
-enzyme:     Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX
-pDeath:     Probability of death.
+\describe{
+\item{motherID:}{ID of mother.}
+\item{fatherID:}{ID of father.}
+\item{age:}{Age in days. Initialised uniform randomly around what we would expect
+             young adults to be.}
+\item{stage:}{Development stage of clutch. 1: egg, 2: larvae, 3: pupae.}
+\item{infProb:}{Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+              Incompatability, else infProb is nonzero.}
+\item{lat:}{Initial north/south or 'y' coordinate of agent. Should start with -16.}
+\item{long:}{Initial east/west of 'x' coordinate of agent. Should start with 145.}
+\item{clutchSize:}{Number of juveniles in the clutch.}
+\item{enzyme:}{Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX}
+\item{pDeath:}{Probability of death.}
+}
 }
 

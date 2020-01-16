@@ -71,18 +71,20 @@ initialise_adults <- function(N,pmale){
 #'  data.table after construction.
 #'
 #' @section Data.table variables and initialisation:
-#' motherID:   ID of mother.
-#' fatherID:   ID of father.
-#' age:        Age in days. Initialised uniform randomly around what we would expect
-#'              young adults to be.
-#' stage:      Development stage of clutch. 1: egg, 2: larvae, 3: pupae.
-#' infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
-#'               Incompatability, else infProb is nonzero.
-#' lat:        Initial north/south or 'y' coordinate of agent. Should start with -16.
-#' long:       Initial east/west of 'x' coordinate of agent. Should start with 145.
-#' clutchSize: Number of juveniles in the clutch.
-#' enzyme:     Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX
-#' pDeath:     Probability of death.
+#' \describe{
+#' \item{motherID:}{ID of mother.}
+#' \item{fatherID:}{ID of father.}
+#' \item{age:}{Age in days. Initialised uniform randomly around what we would expect
+#'              young adults to be.}
+#' \item{stage:}{Development stage of clutch. 1: egg, 2: larvae, 3: pupae.}
+#' \item{infProb:}{Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+#'               Incompatability, else infProb is nonzero.}
+#' \item{lat:}{Initial north/south or 'y' coordinate of agent. Should start with -16.}
+#' \item{long:}{Initial east/west of 'x' coordinate of agent. Should start with 145.}
+#' \item{clutchSize:}{Number of juveniles in the clutch.}
+#' \item{enzyme:}{Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX}
+#' \item{pDeath:}{Probability of death.}
+#' }
 #' @param Njuv The number of initial juvenile agents.
 #' @return A data.table of \code{Njuv} juvenile agents.
 initialise_juveniles <- function(Njuv){
@@ -98,7 +100,7 @@ initialise_juveniles <- function(Njuv){
 
   juv.dt$clutchSize <- param$eta_1 #since these will always be wild type
   juv.dt$enzyme   <- lapply(juv.dt$enzyme, function(x) x <- runif(1, min=0, max=0.95)) #CHANGE: this should not be uniform
-  juv.dt$pDeath   <- param$alpha #fix this. see removeNatDeath in Carla's code
+  juv.dt$pDeath   <- param$alpha_j #fix this. see removeNatDeath in Carla's code
 
   ##BUT for the moment we're just using the same method as the adult lat/long to get working prototype
   juv.dt$lat  <- lapply(juv.dt$lat, function (x) x<-round(runif(1, min = min(boundaryDat$Lat), max = max(boundaryDat$Lat)),6))
@@ -173,7 +175,7 @@ initialise_eggs <- function(toLay){
   for(i in 1:length(motheruninf)){
     if(eggs.dt$fatherStatus[motheruninf[i]] == 0){
       eggs.dt$infProb[i] <- 0
-      eggs.dt$pDeath <- alpha
+      eggs.dt$pDeath <- alpha_j
     }
     else if(eggs.dt$fatherStatus[motheruninf[i]] == 1){
       eggs.dt$infProb[i] <- -1
@@ -182,7 +184,7 @@ initialise_eggs <- function(toLay){
     else{
       #error handling case; offspring are just wild CHECK
       eggs.dt$infProb[i] <- 0
-      eggs.dt$pDeath <- alpha
+      eggs.dt$pDeath <- alpha_j
     }
   }
   #Get rid of "extra information" in data table that we no longer need
