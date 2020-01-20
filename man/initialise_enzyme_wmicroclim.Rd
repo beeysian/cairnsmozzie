@@ -22,8 +22,15 @@ Land types (as of 16/1/19) are:
 \item{Houses (tempdev informed by house type)}
 }}
 \usage{
-initialise_enzyme_wmicroclim(bdary, tempData, typeTempDevs, noDays,
-  noLandTypes, gridSize, const)
+initialise_enzyme_wmicroclim(
+  bdary,
+  tempData,
+  typeTempDevs,
+  noDays,
+  noLandTypes,
+  gridSize,
+  const
+)
 }
 \arguments{
 \item{bdary}{Boundary of simulation region.}

@@ -15,10 +15,11 @@ init_position <- function(boundaryDat, N){
     samplePts <- spsample(polyg, N, type="random") #see documentation for other options for 'type'
     #check if points are in bounds:
     if(sum(point.in.polygon(samplePts$x,samplePts$y,boundaryDat$Long,boundaryDat$Lat)) >= N){
-      i     <- 0
-      posdf <- cbind(long=samplePts$x, lat=samplePts$y)
+      i      <- 0
+      posdf  <- as.data.frame(cbind(long=samplePts$x, lat=samplePts$y))
       griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long)
-      posdf <- cbind(posdf, gridID = griddf)
+      #posdf  <- cbind(posdf, gridID = griddf)
+      posdf  <- cbind(posdf, gridID = griddf)
       return(posdf)
     }
   }
