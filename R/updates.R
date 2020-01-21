@@ -247,8 +247,9 @@ juv_to_adult <- function(juvID, idStart, pmale, lambda){
 #' @param enzyme List of all juvenile agent enzyme score from juv.dt.
 #' @return Updated \code{stage} and \code{enzyme} of agents, as a list.
 #' @export
-update_juv_stage <- function(stage,enzyme){
+update_juv_stage <- function(stage, enzyme){
 
+  stage[which(enzyme >= 0.95)] <- stage[which(enzyme >= 0.95)] +1
 
 }
 

@@ -56,11 +56,11 @@ points_to_matchedIDs <- function(points, grid){
 #' @param pos A point in lat/long coordinates
 #' @param grid Dataframe of area grid, as per what's created in make_grid
 #' @return A grid ID that has been assigned to that point. Should be 1 integer.
-assign_grid <- function(pos, grid){
-  close <- which((abs(pos$V2 - grid$V2) < gridSize) & abs(pos$V1 - grid$V1 < gridSize))
+assign_grid <- function(pos, grid.df){
+  close <- which((abs(pos$V2 - grid.df$V2) < gridSize) & abs(pos$V1 - grid.df$V1 < gridSize))
   grid.match <- -1
   if(length(close > 0)){
-    close.dist <- list(abs(pos$V2 - grid$V2[close]), abs(pos$V1 - grid$V1[close]))
+    close.dist <- list(abs(pos$V2 - grid.df$V2[close]), abs(pos$V1 - grid.df$V1[close]))
     closest    <- which(close.dist[[1]] == min(close.dist[[1]]) & close.dist[[2]] == min(close.dist[[2]]))
     grid.match <- close[closest]
 

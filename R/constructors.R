@@ -59,7 +59,7 @@ initialise_adults <- function(N,pmale){
 
   #initial position of each mosquito, then combine with rest of dataframe
   position.dt <- init_position(boundaryDat,N)
-  init.dt <- cbind(init.dt,position.dt)
+  init.dt     <- cbind(init.dt,position.dt)
 
   return(init.dt)
 }

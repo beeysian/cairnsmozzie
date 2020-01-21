@@ -18,7 +18,6 @@ init_position <- function(boundaryDat, N){
       i      <- 0
       posdf  <- as.data.frame(cbind(long=samplePts$x, lat=samplePts$y))
       griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long)
-      #posdf  <- cbind(posdf, gridID = griddf)
       posdf  <- cbind(posdf, gridID = griddf)
       return(posdf)
     }

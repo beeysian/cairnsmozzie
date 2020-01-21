@@ -5,7 +5,7 @@
 \title{Assigns a point to a grid ID.
 Used for functions points_to_matchedIDs and bb_to_matchedIDs.}
 \usage{
-assign_grid(pos, grid)
+assign_grid(pos, grid.df)
 }
 \arguments{
 \item{pos}{A point in lat/long coordinates}

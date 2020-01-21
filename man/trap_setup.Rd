@@ -11,7 +11,7 @@ trap_setup(trapped)
 \item{trapped}{Dataframe of trap data as per function trap_clean}
 }
 \value{
-Dataframe of trap locations in lat/long.
+Dataframe of trap locations in lat/long and its GID.
 }
 \description{
 Sets up traps:

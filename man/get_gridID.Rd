@@ -3,7 +3,8 @@
 \name{get_gridID}
 \alias{get_gridID}
 \title{Given a latitude and longitude, determines the corresponding grid ID.
-Assumes grid.df is a global variable.}
+Assumes grid.df is a global variable.
+This is to find the grid ID of an agent. assign_grid() is for microclimates.}
 \usage{
 get_gridID(testlat, testlong)
 }
@@ -18,4 +19,5 @@ Corresponding grid ID number.
 \description{
 Given a latitude and longitude, determines the corresponding grid ID.
 Assumes grid.df is a global variable.
+This is to find the grid ID of an agent. assign_grid() is for microclimates.
 }

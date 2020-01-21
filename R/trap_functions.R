@@ -45,12 +45,30 @@ trap_clean <- function(trapped){
 #' Sets up traps:
 #' Determines where unique traps positions are.
 #' @param trapped Dataframe of trap data as per function trap_clean
-#' @return Dataframe of trap locations in lat/long.
+#' @return Dataframe of trap locations in lat/long and its GID.
 trap_setup <- function(trapped){
-  traploc <- as.data.frame(cbind(trapped$Lat, trapped$Long))
+  traploc <- cbind(trapped$Lat, trapped$Long)
+  traploc <- cbind(traploc, trapped$GID)
+  traploc <- as.data.frame(traploc)
   traploc <- unique(traploc)
-
   return(traploc)
+}
+
+#' Set up output file for trapping
+#' It's going to be in longform
+#' Variables: Lat, Long, Sex, Day, Wolbachia status, Number trapped.
+#' @param trapped Cleaned trapping data
+#' @param traploc Vector of trap locations
+#' @param number_of_traps Number of traps.
+#' @param noTimeSteps Number of time steps.
+#' @return Longform dataframe to record trapping data.
+trap_data_setup <- function(trapped, traploc, number_of_traps, noTimeSteps){
+  N <- number_of_traps * noTimeSteps * 2 * 2 #*2 for Male and Female, *2 for Wolbachia and no Wolbachia
+
+  #trapoutput <- setNames(data.frame(matrix(ncol = 5, nrow = N)),
+                         #c("lat", "long","sex", "day","wolbachia"))
+
+  return(trapoutput)
 }
 
 #' Finds any possible adult mosquitoes that are trapped by a particular trap
@@ -64,7 +82,9 @@ trap_setup <- function(trapped){
 #' @return Vector of mosquito IDs to be trapped. Expect to be length 0 for the first few days. If length 0 return -1.
 find_trapped <- function(traplat, traplong, phi, mozzie.dt){
   bb         <- c(traplat - phi, traplat + phi, traplong - phi, traplong + phi) # Draw a box around drap of distance phi
-  to.trap    <- which(mozzie.dt$lat >= bb[1] && mozzie.dt$lat <= bb[2] && mozzie.dt$long <= bb[3] && mozzie.dt$long >= bb[4])
+  #to.trap    <- which(mozzie.dt$lat >= bb[1] && mozzie.dt$lat <= bb[2] && mozzie.dt$long <= bb[3] && mozzie.dt$long >= bb[4])
+  to.trap    <- which(mozzie.dt$lat >= bb[1] & mozzie.dt$lat <= bb[2] & mozzie.dt$long >= bb[3] & mozzie.dt$long <= bb[4] & mozzie.dt$typeDeath == -1)
+
   no.to.trap <- length(to.trap) # To calculate random vector
   rand       <- runif(no.to.trap, min = 0, max = 1) #Calculates a Uniform[0,1] number for each mozzie in trap radius
   to.trap    <- to.trap[which(rand >= 0.5)]
