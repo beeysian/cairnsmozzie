@@ -268,3 +268,28 @@ initialise_release <- function(noReleased, pmale,lat,long){
   return(release.dt)
 
 }
+
+#' Initialises graveyard data.table
+#' The graveyard is where the entries of all dead adult mozzies go
+initialise_graveyard <- function(){
+
+  graveyard <- data.table(
+      ID           = integer(),
+      gender       = integer(),
+      mateID       = double(),
+      enzyme       = list(),
+      age          = integer(),
+      gonoCycle    = numeric(),
+      timeDeath    = numeric(),
+      typeDeath    = numeric(),
+      whereTrapped = double(),
+      motherID     = numeric(),
+      fatherID     = numeric(),
+      infStatus    = numeric(),
+      releaseLoc   = numeric(),
+      long         = double(),
+      lat          = double(),
+      gridID       = numeric()
+  )
+return(graveyard)
+}

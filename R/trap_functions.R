@@ -86,6 +86,7 @@ find_trapped <- function(traplat, traplong, phi, mozzie.dt){
   to.trap    <- which(mozzie.dt$lat >= bb[1] & mozzie.dt$lat <= bb[2] & mozzie.dt$long >= bb[3] & mozzie.dt$long <= bb[4] & mozzie.dt$typeDeath == -1)
 
   no.to.trap <- length(to.trap) # To calculate random vector
+  #Change below to a bernoulli?
   rand       <- runif(no.to.trap, min = 0, max = 1) #Calculates a Uniform[0,1] number for each mozzie in trap radius
   to.trap    <- to.trap[which(rand >= 0.5)]
 
