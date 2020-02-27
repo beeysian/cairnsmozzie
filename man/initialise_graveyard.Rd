@@ -7,6 +7,9 @@ The graveyard is where the entries of all dead adult mozzies go}
 \usage{
 initialise_graveyard()
 }
+\value{
+An empty data.table that's ready to be rbind()-ed
+}
 \description{
 Initialises graveyard data.table
 The graveyard is where the entries of all dead adult mozzies go

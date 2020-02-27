@@ -9,12 +9,14 @@ Since this is a release, some data is made up/dummy:
 for example, we don't know the ID of the parents.
 Latitude/Longitude of agents is given by data supplied by the WMP.}
 \usage{
-initialise_release(noReleased, pmale, lat, long)
+initialise_release(noReleased, noMale, noFemale, lat, long, idStart, GID)
 }
 \arguments{
 \item{noReleased}{The number of initial adult agents.}
 
-\item{pmale}{Probability of being male.}
+\item{noMale}{Number of males.}
+
+\item{noFemale}{Number of females.}
 
 \item{lat}{Latitude of release site.}
 
@@ -33,28 +35,30 @@ Latitude/Longitude of agents is given by data supplied by the WMP.
 }
 \section{Data.table variables and initialisation}{
 
-ID:     Unique ID number of agent.
-gender: Male is 0, female is 1. We know proportions of female/males released
-         from data.
-mateID: Unique ID of their mate. Since no initial mosquitoes will have a mate
+\describe{
+\item{ID:}{Unique ID number of agent.}
+\item{gender:}{Male is 0, female is 1. We know proportions of female/males released
+         from data.}
+\item{mateID:}{Unique ID of their mate. Since no initial mosquitoes will have a mate
         yet, it is initialised as -1.
-        Males will always have mateID as -1 since they can have multiple mates.
-enzyme: Enzyme Kinetic Score. See \code{init} for explanation. Initialised
-        uniform randomly.
-age:    Age in days. Initialised uniform randomly around what we would expect
-        young adults to be.
-gonoCycle: Gonotrophic cycle. Means something different for males and females.
+        Males will always have mateID as -1 since they can have multiple mates.}
+\item{enzyme:}{Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+        uniform randomly.}
+\item{age:}{Age in days. Initialised uniform randomly around what we would expect
+        young adults to be.}
+\item{gonoCycle:}{Gonotrophic cycle. Means something different for males and females.
            males: number of times they've mated in a day, to be reset daily
            females: how many times they've laid a clutch of eggs
-           we roughly estimate the gonoCycle of females based on \code{age}.
-timeDeath: Timestep they died: initialised as -1 as they are alive.
-typeDeath: Random mortality/trapped death/death due to old age: which type?
-whereTrapped: in the event of trapped death, where did they die? -1 otherwise.
-motherID: Unique ID of mother. -1 since wild release.
-fatherID: Unique ID of father. -1 since wild release.
-infStatus: 1 if they carry Wolbachia, 0 if no Wolbachia, -1 for CI.
-           They should mostly be 1 with a few 0 due to incomplete transmission.
-lat:      Initial north/south or 'y' coordinate of agent. Should start with -16.
-long:     Initial east/west of 'x' coordinate of agent. Should start with 145.
+           we roughly estimate the gonoCycle of females based on \code{age}.}
+\item{timeDeath:}{Timestep they died: initialised as -1 as they are alive.}
+\item{typeDeath:}{Random mortality/trapped death/death due to old age: which type?}
+\item{whereTrapped:}{In the event of trapped death, where did they die? -1 otherwise.}
+\item{motherID:}{Unique ID of mother. -1 since wild release.}
+\item{fatherID:}{Unique ID of father. -1 since wild release.}
+\item{infStatus:}{1 if they carry Wolbachia, 0 if no Wolbachia, -1 for CI.
+           They should mostly be 1 with a few 0 due to incomplete transmission.}
+\item{lat:}{Initial north/south or 'y' coordinate of agent. Should start with -16.}
+\item{long:}{Initial east/west of 'x' coordinate of agent. Should start with 145.}
+}
 }
 

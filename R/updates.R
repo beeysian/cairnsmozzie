@@ -200,20 +200,23 @@ find_mate <- function(femID, k, max_daily_mates){
 #' @param lambda Shape parameter for distance calculation. ABC parameter.
 #' @return A data.table of \code{N} adult agents.
 juv_to_adult <- function(juvID, idStart, pmale, lambda){
-  new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1), gender=numeric(juv.dt$clutchSize[[juvID]]), lat=numeric(juv.dt$clutchSize[[juvID]]), long=numeric(juv.dt$clutchSize[[juvID]]), mateID=numeric(juv.dt$clutchSize[[juvID]]), enzyme=numeric(juv.dt$clutchSize[[juvID]]), age=numeric(juv.dt$clutchSize[[juvID]]), gonoCycle=numeric(juv.dt$clutchSize[[juvID]]) ,timeDeath=numeric(juv.dt$clutchSize[[juvID]]) ,typeDeath=numeric(juv.dt$clutchSize[[juvID]]), whereTrapped=numeric(juv.dt$clutchSize[[juvID]]), motherID=numeric(juv.dt$clutchSize[[juvID]]), fatherID=numeric(juv.dt$clutchSize[[juvID]]), infStatus=numeric(juv.dt$clutchSize[[juvID]]), releaseLoc=numeric(juv.dt$clutchSize[[juvID]]))
-  new.dt$gender <- lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
+  new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1), gender=numeric(juv.dt$clutchSize[[juvID]]), lat=numeric(juv.dt$clutchSize[[juvID]]), long=numeric(juv.dt$clutchSize[[juvID]]), mateID=numeric(juv.dt$clutchSize[[juvID]]), enzyme=numeric(juv.dt$clutchSize[[juvID]]), age=numeric(juv.dt$clutchSize[[juvID]]), gonoCycle=numeric(juv.dt$clutchSize[[juvID]]) ,timeDeath=numeric(juv.dt$clutchSize[[juvID]]) ,typeDeath=numeric(juv.dt$clutchSize[[juvID]]), whereTrapped=numeric(juv.dt$clutchSize[[juvID]]), motherID=numeric(juv.dt$clutchSize[[juvID]]), fatherID=numeric(juv.dt$clutchSize[[juvID]]), infStatus=numeric(juv.dt$clutchSize[[juvID]]), releaseLoc=numeric(juv.dt$clutchSize[[juvID]]), gridID = numeric(juv.dt$clutchSize[[juvID]]))
+
+
+  new.dt$gender <- as.integer(lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale))) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
 
   #We assume that mozzies disperse a bit from their original position when they hatch
   #CHECK boundaries
   positions   <- lapply(1:juv.dt$clutchSize[[juvID]], function(x) random_dispersal(juv.dt$lat[[juvID]],juv.dt$long[[juvID]], lambda)) #creates a list of lats and longs
   positions   <- do.call(rbind,positions)
-  new.dt$lat  <- positions[,1]
-  new.dt$long <- positions[,2]
+  new.dt$lat  <- as.numeric(positions[,1])
+  new.dt$long <- as.numeric(positions[,2])
+  new.dt$gridID <- mapply(FUN = get_gridID, new.dt$lat, new.dt$long)
 
   new.dt$mateID      <- new.dt$mateID[new.dt$gender == 0] <- -1 #males don't have mates
   new.dt$enzyme      <- 0 #enzyme resets because they're moving to the next stage
 
-  new.dt$age <- 0 #CHANGE
+  new.dt$age <- juv.dt$age[[juvID]] #CHANGE
   #new.dt$age <- 14 + t
   new.dt$gonoCycle    <- 0 #gonoCycle will start at 0 for everyone when they become an adult
   new.dt$whereTrapped <- -1
@@ -224,7 +227,7 @@ juv_to_adult <- function(juvID, idStart, pmale, lambda){
   new.dt$motherID     <- juv.dt$mother[[juvID]]
   new.dt$fatherID     <- juv.dt$father[[juvID]]
 
-  new.dt$infStatus    <- lapply(new.dt$infStatus, function(x) x<-rbinom(1,1,juv.dt$infProb[juvID]))
+  new.dt$infStatus    <- as.numeric(lapply(new.dt$infStatus, function(x) x<-rbinom(1,1,juv.dt$infProb[juvID])))
   #new.dt$infStatus <- juv.dt$infProb[[juvID]] #FIX
   new.dt$releaseLoc   <- -1
   new.dt$timeDeath    <- -1

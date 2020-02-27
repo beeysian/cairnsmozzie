@@ -11,9 +11,10 @@ get_gridID <- function(testlat, testlong){
   if(length(closelong) > 1){
     # The below used to have grid.df$lat but looks like we need to use V1, V2
     closelat <- closelong[which(abs(grid.df$V1[closelong] - testlat) == min(abs(grid.df$V1[closelong] - testlat)))]
-  }
-  else if(length(closelong) == 0){
-    closelat <- closelong
-  }
+  }else{closelat <- closelong }
+
+#  else if(length(closelong) == 0){
+#    closelat <- closelong
+#  }
 return(closelat)
 }
