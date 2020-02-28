@@ -4,7 +4,7 @@
 \alias{initialise_eggs}
 \title{Creates a data.table of newly laid eggs to add to the juvenile data.table.}
 \usage{
-initialise_eggs(toLay)
+initialise_eggs(toLay, eta_1, eta_2, p_1, alpha_j)
 }
 \arguments{
 \item{toLay}{List of the indices of mothers attempting to lay a clutch.}

@@ -145,56 +145,73 @@ initialise_juveniles <- function(Njuv){
 #' }
 #' @param toLay List of the indices of mothers attempting to lay a clutch.
 #' @return A data.table of juvenile agents in stage 1 corresponding to each mother in \code{toLay}.
-initialise_eggs <- function(toLay){
+initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
   noMothers <- length(toLay)
   eggs.dt <- data.table(motherID = numeric(noMothers), fatherID = numeric(noMothers), motherStatus = numeric(noMothers), fatherStatus = numeric(noMothers), age = numeric(noMothers), stage = numeric(noMothers), infProb = numeric(noMothers) , lat = double(noMothers), long = double(noMothers), clutchSize =  numeric(noMothers), enzyme = double(noMothers), pDeath = double(noMothers), gridID = integer(noMothers))
 
-  eggs.dt$motherID <- mozziedf$ID[toLay]
-  eggs.dt$fatherID <- mozziedf$mateID[toLay]
+  eggs.dt$motherID <- mozzie.dt$ID[toLay]
+  eggs.dt$fatherID <- mozzie.dt$mateID[toLay]
   eggs.dt$age    <- 0 #because they're new!
   eggs.dt$stage  <- 1 #because they're eggs!
-  eggs.dt$lat    <- mozziedf$lat[toLay] #mother's position
-  eggs.dt$long   <- mozziedf$long[toLay] #mother's position
-  eggs.dt$gridID <- mapply(FUN = get_gridID, eggs.dt$lat, eggs.dt$long)
+  eggs.dt$lat    <- mozzie.dt$lat[toLay] #mother's position
+  eggs.dt$long   <- mozzie.dt$long[toLay] #mother's position
+  eggs.dt$gridID <- as.integer(mapply(FUN = get_gridID, eggs.dt$lat, eggs.dt$long))
 
   # This code needs to be removed- fix code so I don't have to do this --------
   eggs.dt[eggs.dt=="NULL"] <- 0
   eggs.dt <- na.omit(eggs.dt) #CHANGE THIS it shouldnt be happening
   #eggs.dt <- eggs.dt[complete.cases(eggs.dt$infProb),]
-  eggs.dt$clutchSize[which(mozziedf$infStatus[toLay] == 1)] <- eta_2 #finish
-  eggs.dt$clutchSize[which(mozziedf$infStatus[toLay] == 0)] <- eta_1 #finish
+  eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 1)] <- eta_2 #finish
+  eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 0)] <- eta_1 #finish
 
   eggs.dt$enzyme <- 0 #Since they are new eggs, they haven't had the "chance" to accumulate enzyme yet
 
   # CI ----
-  eggs.dt$fatherStatus <- mozziedf$infStatus[which(mozziedf$ID %in% mozziedf$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status
-  eggs.dt$motherStatus <- mozziedf$infStatus[toLay] #same but for mother
+  #eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% mozzie.dt$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status
+  eggs.dt$fatherStatus <- mozzie.dt$infStatus[mozzie.dt$mateID[toLay]]
+  eggs.dt$motherStatus <- mozzie.dt$infStatus[toLay] #same but for mother
 
   #If mother is a Wolbachia carrier then offspring should be (with probability p_1)
-  eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- (1-p_1)
-  eggs.dt$pDeath[which(eggs.dt$motherStatus == 1)]  <- 0.01 #natural death rate
+  #eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- (1-p_1)
+  eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- p_1
+  eggs.dt$pDeath[which(eggs.dt$motherStatus == 1)]  <- alpha_j #natural death rate
 
   #FIX : HACKY FOR LOOP for ANZIAM 2/2/19
 
   motheruninf <- which(eggs.dt$motherStatus == 0)
 
-  for(i in 1:length(motheruninf)){
-    if(eggs.dt$fatherStatus[motheruninf[i]] == 0){
-      eggs.dt$infProb[i] <- 0
-      eggs.dt$pDeath <- alpha_j
-    }
-    else if(eggs.dt$fatherStatus[motheruninf[i]] == 1){
-      eggs.dt$infProb[i] <- -1
-      eggs.dt$pDeath[i] <- -1
-    }
-    else{
+
+  # This is to remove the confusing if/then statements below
+  which.wt <- which(eggs.dt$motherStatus == 0 & eggs.dt$fatherStatus == 0) #Which are Wild Type/no Wolbachia
+  eggs.dt[which.wt]$infProb <- 0
+  eggs.dt[which.wt]$pDeath <- alpha_j
+
+
+  which.ci <- which(eggs.dt$motherStatus == 0 & eggs.dt$fatherStatus == 1)
+  eggs.dt[which.ci]$infProb <- -1
+  eggs.dt[which.ci]$pDeath <- -1
+
+  #below is deprecated- remove
+#  for(i in 1:length(motheruninf)){
+#    if(eggs.dt$fatherStatus[motheruninf[i]] == 0){
+#      eggs.dt$infProb[i] <- 0
+#      eggs.dt$pDeath <- alpha_j
+#    }
+#    else if(eggs.dt$fatherStatus[motheruninf[i]] == 1){
+#      eggs.dt$infProb[i] <- -1
+#      eggs.dt$pDeath[i] <- -1
+#    }
+#    else{
       #error handling case; offspring are just wild CHECK
-      eggs.dt$infProb[i] <- 0
-      eggs.dt$pDeath <- alpha_j
-    }
-  }
+#      eggs.dt$infProb[i] <- 0
+#      eggs.dt$pDeath <- alpha_j
+#    }
+#  }
   #Get rid of "extra information" in data table that we no longer need
-  eggs.dt <- eggs.dt[,c("motherStatus","fatherStatus") := NULL]
+  to.drop <- c("motherStatus","fatherStatus")
+  #eggs.dt <- eggs.dt[,c("motherStatus","fatherStatus") := NULL] #this only works if new.eggs.dt is purely a data.table.
+  #it seems like some kind of data.frame and data.table chimera, I'm terrified but will ignore it
+  eggs.dt <- eggs.dt[ , !(names(eggs.dt) %in% to.drop)]
 
   return(eggs.dt)
 }
@@ -243,11 +260,14 @@ initialise_release <- function(noReleased, noMale, noFemale, lat, long, idStart,
   noVariables <- 16 #number of variables used to track state of mozzie minus 2 (lat & long). this is so I make sure to remember to change it as necessary
   #18/7: change release.dt so we just have a numeric age for mosquitoes rather than timeBirth/timeAdult/timeDeath
   release.dt <- setNames(data.frame(matrix(ncol = noVariables, nrow = noReleased)), c("ID", "gender", "lat","long","mateID", "enzyme","age","gonoCycle","timeDeath","typeDeath","whereTrapped","motherID","fatherID","infStatus","releaseLoc","gridID"))
+#  release.dt <- data.table(ID = integer(noReleased), gender = numeric(noReleased), mateID = numeric(noReleased), enzyme = numeric(noReleased), age = numeric(noReleased), gonoCycle = numeric(noReleased), timeDeath = numeric(noReleased), typeDeath = numeric(noReleased), whereTrapped = numeric(noReleased), motherID = numeric(noReleased), fatherID = numeric(noReleased), infStatus = numeric(noReleased), releaseLoc = numeric(noReleased), long = numeric(noReleased), lat = numeric(noReleased), gridID = integer(noReleased) )
 
+
+  #print(release.dt)
   release.dt$gender <- 0 #Initialise all as male
   release.dt$gender[1:noFemale] <- 1 #Make #noFemale entries female
   #release.dt$gender <- lapply(release.dt$gender, function(x) x <- rbinom(1,1,1 - pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
-  #release.dt$ID     <- (max(mozziedf$ID) + 1):((max(mozziedf$ID)) + noReleased) #unique ID for each mosquito #CHECK
+  #release.dt$ID     <- (max(mozzie.dt$ID) + 1):((max(mozzie.dt$ID)) + noReleased) #unique ID for each mosquito #CHECK
   release.dt$ID <- idStart:(idStart+noReleased-1) #Unique ID for each mosquito
 
   #release.dt$age <- lapply(release.dt$age, function (x) x<-round(rtruncnorm(1,mean=20,sd=2,a=14,b=30)))

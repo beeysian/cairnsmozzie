@@ -16,5 +16,8 @@ get_gridID <- function(testlat, testlong){
 #  else if(length(closelong) == 0){
 #    closelat <- closelong
 #  }
+  if(length(closelat) > 1){
+    closelat <- closelat[1]
+  }
 return(closelat)
 }

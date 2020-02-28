@@ -106,43 +106,43 @@ update_enzyme <- function(stage, timestep){
 #' @param k Distance within which female mosquito 'searches' for mate. ABC parameter.
 #' @param max_daily_mates Number of times a male can mate in a day.
 #' @return \code{mateID} of agent, or -1 if agent does not find a mate.
-find_mate <- function(femID, k, max_daily_mates){
+find_mate <- function(femID, k, max_daily_mates, mozzie.dt){
   new.mate <- -1 #Function returns -1 if it does not find a mate
+  print("stop 1")
+  print(mozzie.dt)
+  #print(mozzie.dt[["lat"]][femID])
   position <- as.numeric(c("lat"  = mozzie.dt$lat[femID],
                            "long" = mozzie.dt$long[femID]))
-
+print("stop 1.5")
   #CHANGE: magic number to k
   bdary    <- c("latmin" = position[1]-0.00011, "latmax" = position[1]+0.00011,
                 "longmin" = position[2]-0.00011 , "longmax" = position[2]+0.00011)
   #CHECK EKS of males that can mate?
   possible.mates <- which(mozzie.dt$lat >= bdary["latmin"] & mozzie.dt$lat <= bdary["latmax"] & mozzie.dt$long >= bdary["longmin"] & mozzie.dt$long <= bdary["longmax"] & mozzie.dt$gender == 0)
   no.bachelors   <- length(possible.mates)
-  #print(paste0("no.bachelors: ",no.bachelors))
+ print("stop 2")
+   #print(paste0("no.bachelors: ",no.bachelors))
   if(no.bachelors == 0){
     new.mate <- -1
-    # print(paste0(femID, " no mate found"))
-  }
-  else if(no.bachelors == 1){
+    print(paste0(femID, " no mate found"))
+  }else if(no.bachelors == 1){
     if(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates){
       new.mate <- -1 #even though there is only one male, he has mated too much today
-      #print(paste0(femID, " 1 mate found, unsuitable"))
-    }
-    else{
+      print(paste0(femID, " 1 mate found, unsuitable"))
+    }else{
       new.mate <- as.integer(possible.mates)
       mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1
       #return(mozziedf$ID[possible.mates]) #New mate is just the single male they found
-      #print(paste0(femID, " 1 mate found"))
+      print(paste0(femID, " 1 mate found"))
     }
-  }
-  else{
+  }else{
     if(length(which(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates)) == 0){
       #Randomly permutes the list of possible mates and then picks the one at the top of the pile
       new.mate <- sample(possible.mates)[1]
       #Increment number of mates of male by 1
       mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1
-      #print(paste0(femID, " multiple mates, all ok"))
-    }
-    else{
+      print(paste0(femID, " multiple mates, all ok"))
+    }else{
       #Remove males who have mated more than "max_daily_mates" number of times in a day
       possible.mates <- possible.mates[-(which(mozzie.dt[possible.mates]$gonoCycle >= max_daily_mates))]
       #Now we have one more condition to check for:
@@ -151,12 +151,11 @@ find_mate <- function(femID, k, max_daily_mates){
       if(length(possible.mates) == 0){
         #print(paste0(femID, " multiple mates, had to drop some AND then ended up with none"))
         new.mate <- 1
-      }
-      else{
+      }else{
         #Randomly permutes the list of possible mates and then picks the one at the top of the pile
         new.mate <- sample(possible.mates)[1]
         mozzie.dt$gonoCycle[new.mate] <<- mozzie.dt$gonoCycle[new.mate] + 1 #increment number of mates by 1
-        #print(paste0(femID, " multiple mates, had to drop some"))
+        print(paste0(femID, " multiple mates, had to drop some"))
       }
     }
   }

@@ -4,7 +4,7 @@
 \alias{find_mate}
 \title{Finds a mate for a female mosquitoes of breeding age.}
 \usage{
-find_mate(femID, k, max_daily_mates)
+find_mate(femID, k, max_daily_mates, mozzie.dt)
 }
 \arguments{
 \item{femID}{ID of female looking for mate.}
