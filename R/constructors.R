@@ -166,6 +166,7 @@ initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
 
   eggs.dt$enzyme <- 0 #Since they are new eggs, they haven't had the "chance" to accumulate enzyme yet
 
+
   # CI ----
   #eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% mozzie.dt$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status
   eggs.dt$fatherStatus <- mozzie.dt$infStatus[mozzie.dt$mateID[toLay]]
@@ -183,14 +184,17 @@ initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
 
   # This is to remove the confusing if/then statements below
   which.wt <- which(eggs.dt$motherStatus == 0 & eggs.dt$fatherStatus == 0) #Which are Wild Type/no Wolbachia
-  eggs.dt[which.wt]$infProb <- 0
-  eggs.dt[which.wt]$pDeath <- alpha_j
+  eggs.dt$infProb[which.wt] <- 0
+  eggs.dt$pDeath[which.wt] <- alpha_j
 
 
   which.ci <- which(eggs.dt$motherStatus == 0 & eggs.dt$fatherStatus == 1)
-  eggs.dt[which.ci]$infProb <- -1
-  eggs.dt[which.ci]$pDeath <- -1
 
+  eggs.dt$infProb[which.ci] <- -1
+
+  eggs.dt$pDeath[which.ci] <- -1
+
+ # print("get up to here")
   #below is deprecated- remove
 #  for(i in 1:length(motheruninf)){
 #    if(eggs.dt$fatherStatus[motheruninf[i]] == 0){
