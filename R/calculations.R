@@ -41,3 +41,13 @@ init_juv_stage <- function(age){
   }
   return(stage)
 }
+
+#' Grabs the land type of a mosquito given its grid ID.
+#' Used for microclimates work.
+#'
+#' @param gridID Grid ID of an agent
+#' @return Land type
+grid_to_land_type <- function(gridID){
+  landtype <- landtype.df$LandType[gridID]
+  return(landtype)
+}

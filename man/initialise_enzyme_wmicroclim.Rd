@@ -8,7 +8,7 @@ If you're using this function for a different area, you will need to change
  all of the data that's read in in the first part of the function.
 The lookup table is deterministic, and is made of nested lists.
 The order will be: [stage][land type][day]
-So when we update the EKS for each agent, we add the value that is at df[stage][land type][day]
+So when we update the EKS for each agent, we add the value that is at df[[stage]][land type, ][day]
 Eg: for an egg that is in land type 1 at time step t=2, we add the value at dt[0][1][2] to the agents' EKS
 To use this list, indexing works like: EKM_chart[[stage]][land_type, ][day]
 Land types (as of 16/1/19) are:
@@ -57,7 +57,7 @@ If you're using this function for a different area, you will need to change
  all of the data that's read in in the first part of the function.
 The lookup table is deterministic, and is made of nested lists.
 The order will be: [stage][land type][day]
-So when we update the EKS for each agent, we add the value that is at df[stage][land type][day]
+So when we update the EKS for each agent, we add the value that is at df[[stage]][land type, ][day]
 Eg: for an egg that is in land type 1 at time step t=2, we add the value at dt[0][1][2] to the agents' EKS
 To use this list, indexing works like: EKM_chart[[stage]][land_type, ][day]
 Land types (as of 16/1/19) are:

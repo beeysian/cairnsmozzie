@@ -75,6 +75,33 @@ update_enzyme <- function(stage, timestep){
   return(EKSUpdate)
 }
 
+#' Gets the amount by which the Enzyme Kinetic Score for an agent will increase.
+#' This value is added to their current EKS.
+#' This fuction is used when microclimates are enabled.
+#' This function works as a 'lookup' for the EKS data, which is all calculated
+#'     at the beginning of the simulation- this function just grabs it
+#'
+#' @param stage Stage of agent. 1: egg, 2: larvae, 3: pupae, 4: adult.
+#' @param timestep Current timestep.
+#' @param landType Land Lype that the agent is on.
+#' @param grid.df Lookup table that includes the land type
+#' @return Amount by which an agent's EKS will increase for that timestep.
+update_enzyme_microclim <- function(stage, timestep, landType){
+  if(stage == 1){
+    EKSUpdate <- EKMChart[[1]][landType, ][timestep]
+  }
+  else if(stage == 2){
+    EKSUpdate <- EKMChart[[2]][landType, ][timestep]
+  }
+
+  else if(stage == 3){
+    EKSUpdate <- EKMChart[[3]][landType, ][timestep]
+  } else{
+    EKSUpdate <- EKMChart[[4]][landType, ][timestep] # Adults
+  }
+  return(as.numeric(EKSUpdate))
+}
+
 #' Finds a mate for a female mosquitoes of breeding age.
 #'
 #' We draw a box of 'radius' \code{k} around the agent.
@@ -200,8 +227,6 @@ print("stop 1.5")
 #' @return A data.table of \code{N} adult agents.
 juv_to_adult <- function(juvID, idStart, pmale, lambda){
   new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1), gender=numeric(juv.dt$clutchSize[[juvID]]), lat=numeric(juv.dt$clutchSize[[juvID]]), long=numeric(juv.dt$clutchSize[[juvID]]), mateID=numeric(juv.dt$clutchSize[[juvID]]), enzyme=numeric(juv.dt$clutchSize[[juvID]]), age=numeric(juv.dt$clutchSize[[juvID]]), gonoCycle=numeric(juv.dt$clutchSize[[juvID]]) ,timeDeath=numeric(juv.dt$clutchSize[[juvID]]) ,typeDeath=numeric(juv.dt$clutchSize[[juvID]]), whereTrapped=numeric(juv.dt$clutchSize[[juvID]]), motherID=numeric(juv.dt$clutchSize[[juvID]]), fatherID=numeric(juv.dt$clutchSize[[juvID]]), infStatus=numeric(juv.dt$clutchSize[[juvID]]), releaseLoc=numeric(juv.dt$clutchSize[[juvID]]), gridID = numeric(juv.dt$clutchSize[[juvID]]))
-
-
   new.dt$gender <- as.integer(lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale))) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
 
   #We assume that mozzies disperse a bit from their original position when they hatch

@@ -11,7 +11,6 @@ make_grid <- function(bdary, gridSize){
   points  <- point.in.polygon(mesh$Var1, mesh$Var2, bdary$lat, bdary$long) #identifies grid points that lie within our bounday: NB does not include those on the boundary
   grid    <- cbind(mesh$Var1[which(points==1)],mesh$Var2[which(points==1)]) #puts these grid spaces into a df
   grid    <- as.data.frame(grid)
-
   return(grid)
 }
 
@@ -63,7 +62,6 @@ assign_grid <- function(pos, grid.df){
     close.dist <- list(abs(pos$V2 - grid.df$V2[close]), abs(pos$V1 - grid.df$V1[close]))
     closest    <- which(close.dist[[1]] == min(close.dist[[1]]) & close.dist[[2]] == min(close.dist[[2]]))
     grid.match <- close[closest]
-
   }
   else if(length(close == 0)){
     grid.match <- -1
@@ -77,7 +75,7 @@ assign_grid <- function(pos, grid.df){
 #'  all of the data that's read in in the first part of the function.
 #' The lookup table is deterministic, and is made of nested lists.
 #' The order will be: [stage][land type][day]
-#' So when we update the EKS for each agent, we add the value that is at df[stage][land type][day]
+#' So when we update the EKS for each agent, we add the value that is at df[[stage]][land type, ][day]
 #' Eg: for an egg that is in land type 1 at time step t=2, we add the value at dt[0][1][2] to the agents' EKS
 #' To use this list, indexing works like: EKM_chart[[stage]][land_type, ][day]
 #' Land types (as of 16/1/19) are:
@@ -102,13 +100,20 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   # ---- Read in data
   houses <- read.table("inst/exdata/pp_housing_data.txt", header=TRUE) #Location of houses
 
-  greenery.bdary <- read.table("inst/exdata/greenery_bdary.txt", header=TRUE) #Bounding box of greenery area
-  martyn.bdary <- read.table("inst/exdata/martyn_park_bdary.txt", header=TRUE) #Martyn sports park
-  tc.bdary <- read.table("inst/exdata/martin_tennis_court.txt", sep=",", header=TRUE) #Tennis court next to Martyn sports park
+  # The data taken from Google Maps ----
+  greenery.bdary <- read.table("inst/exdata/greenery_bdary.txt", header=TRUE) # Bounding box of greenery area
+  martyn.bdary   <- read.table("inst/exdata/martyn_park_bdary.txt", header=TRUE) # Martyn sports park
+  tc.bdary       <- read.table("inst/exdata/martin_tennis_court.txt", sep=",", header=TRUE) #Tennis court next to Martyn sports park
+  #severin.st     <- read.table("inst/exdata/severinst.txt", sep=",", header=FALSE) # Now included in microclim/roads.txt
+  #roads          <- read.table("inst/exdata/roads.txt", sep=",", header=FALSE) # Now included in microclim/roads.txt
 
-  severin.st <- read.table("inst/exdata/severinst.txt", sep=",", header=FALSE)
-  roads <- read.table("inst/exdata/roads.txt", sep=",", header=FALSE)
-
+  # The data taken from OSM ----
+  newroads <- read.table("inst/exdata/microclim/roads.txt", sep=",", header=TRUE)
+  river    <- read.table("inst/exdata/microclim/river.txt", sep=",", header=TRUE)
+  ogreen   <- read.table("inst/exdata/microclim/ogreen.txt", sep=",", header=TRUE)
+  oconc    <- read.table("inst/exdata/microclim/concrete.txt", sep=",", header=TRUE)
+  trees    <- read.table("inst/exdata/microclim/trees.txt", sep=",", header = TRUE)
+  builds   <- read.table("inst/exdata/microclim/buildings.txt", sep=",", header = TRUE)
   # ---- Construct grid of spacing gridSize
   grid <- make_grid(bdary, gridSize)
 
@@ -132,8 +137,34 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   tc.matchedIDs       <- bb_to_matchedIDs(tc.bdary, gridSize, grid)
 
   # ---- Determine grid spaces from data sets that are lists of points
-  severin.matchedIDs <- points_to_matchedIDs(severin.st, grid)
-  roads.matchedIDs   <- points_to_matchedIDs(roads, grid)
+  #severin.matchedIDs <- points_to_matchedIDs(severin.st, grid) # This dataset is deprecated
+  #roads.matchedIDs   <- points_to_matchedIDs(roads, grid) # This dataset is deprecated
+
+  # ---- Determine grid spaces from data sets that are lists of points: from OSM
+  # The following code could be made into a function... one day.
+  osmroads.dt         <- as.data.frame(cbind(newroads$X_lat, newroads$X_lon))
+  osmroads.matchedIDs <- as.data.frame(points_to_matchedIDs(osmroads.dt, grid))
+  osmroads.matchedIDs <- osmroads.matchedIDs[which(osmroads.matchedIDs != -1),] # Remove any -1 entries
+
+  river.dt            <- as.data.frame(cbind(river$X_lat, river$X_lon))
+  river.matchedIDs    <- as.data.frame(points_to_matchedIDs(river.dt, grid))
+  river.matchedIDs    <- river.matchedIDs[which(river.matchedIDs != -1),] # Remove any -1 entries
+
+  ogreen.dt           <- as.data.frame(cbind(ogreen$X_lat, ogreen$X_lon))
+  ogreen.matchedIDs   <- as.data.frame(points_to_matchedIDs(ogreen.dt, grid))
+  ogreen.matchedIDs   <- ogreen.matchedIDs[which(ogreen.matchedIDs != -1),] # Remove any -1 entries
+
+  oconc.dt            <- as.data.frame(cbind(oconc$X_lat, oconc$X_lon))
+  oconc.matchedIDs    <- as.data.frame(points_to_matchedIDs(oconc.dt, grid))
+  oconc.matchedIDs    <- oconc.matchedIDs[which(oconc.matchedIDs != -1),] # Remove any -1 entries
+
+  trees.dt            <- as.data.frame(cbind(trees$X_lat, trees$X_lon))
+  trees.matchedIDs    <- as.data.frame(points_to_matchedIDs(trees.dt, grid))
+  trees.matchedIDs    <- trees.matchedIDs[which(trees.matchedIDs != -1),] # Remove any -1 entries
+
+  builds.dt           <- as.data.frame(cbind(builds$X_lat, builds$X_lon))
+  builds.matchedIDs   <- as.data.frame(points_to_matchedIDs(builds.dt, grid))
+  builds.matchedIDs   <- builds.matchedIDs[which(builds.matchedIDs != -1),] # Remove any -1 entries
 
   # ---- Construct a dataframe of each grid space and land type
   tempdata <- setNames(data.frame(matrix(ncol=4, nrow = nrow(grid))),c("Longitude","Latitude","LandType", "TemperatureDeviate"))
@@ -143,11 +174,15 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   tempdata$LandType <- 1
 
   # ---- Set the different land types. There should be noLandTypes of land types
+  tempdata$LandType[unlist(ogreen.matchedIDs)]   <- 1
+  tempdata$LandType[unlist(martyn.matchedIDs)]   <- 1
   tempdata$LandType[unlist(greenery.matchedIDs)] <- 2
-  tempdata$LandType[unlist(martyn.matchedIDs)]   <- 3
-  tempdata$LandType[unlist(tc.matchedIDs)]       <- 4
-  tempdata$LandType[unlist(severin.matchedIDs)]  <- 5
-  tempdata$LandType[unlist(roads.matchedIDs)]    <- 5
+  tempdata$LandType[unlist(trees.matchedIDs)]    <- 2
+  tempdata$LandType[unlist(tc.matchedIDs)]       <- 3
+  tempdata$LandType[unlist(osmroads.matchedIDs)] <- 3
+  tempdata$LandType[unlist(oconc.matchedIDs)]    <- 3
+  tempdata$LandType[unlist(river.matchedIDs)]    <- 4
+  tempdata$LandType[unlist(builds.matchedIDs)]   <- 5
   tempdata$LandType[unlist(houses.matchedIDs)]   <- 6
 
   # ---- Set the temperature deviates
@@ -179,5 +214,5 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   # To use this list, indexing works like: EKM_chart[[stage]][land_type, ][day]
   EKM_chart  <- list(EKM_egg, EKM_larval, EKM_pupal, EKM_gono)
 
-  return(EKM_chart)
+  return(c(EKM_chart, tempdata))
 }
