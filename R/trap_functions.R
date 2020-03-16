@@ -49,8 +49,10 @@ trap_clean <- function(trapped){
 trap_setup <- function(trapped){
   traploc <- cbind(trapped$Lat, trapped$Long)
   traploc <- cbind(traploc, trapped$GID)
+  traploc <- cbind(traploc, trapped$ToBufDist)
   traploc <- as.data.frame(traploc)
   traploc <- unique(traploc)
+  colnames(traploc) <- c("Lat", "Long", "GID", "BufferZone")
   return(traploc)
 }
 
@@ -96,3 +98,58 @@ find_trapped <- function(traplat, traplong, phi, mozzie.dt){
   }
   return(trapped.mozz)
 }
+
+#' Gets Wolbachia infection proportion of traps at appropriate time intervals.
+#' In reality, traps were delpoyed and then emptied on certain days.
+#' So we can't just look at the proportion of Wolbachia-carriers over time for the
+#' entire graveyard
+#' @param trapClean Cleaned trapping data as per function trap_clean.
+trap_empty <- function(trapClean){
+
+# Indices of traps that were functional during the simulation period
+timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
+noEmpties     <- length(unique(timelyTrapped$DateCollected)) # Number of days that traps are emptied
+emptyDates <- unique(timelyTrapped$DateCollected) # The dates that traps are emptied
+diff       <- as.numeric(abs(diff(as.Date(emptyDates)))) # This gives us a vector of the difference in days between each trap empty
+diff <- c(0, diff)
+diff <- cumsum(diff) # Entry i is the difference in days between that date and the last trap empty date
+
+DayDeployed   <- as.numeric(as.Date(timelyTrapped$DateDeployed) - as.Date("2013/01/01"))
+timelyTrapped <- as.data.frame(cbind(timelyTrapped, DayDeployed))
+DayCollected  <- as.numeric(as.Date(timelyTrapped$DateCollected) - as.Date("2013/01/01"))
+timelyTrapped <- as.data.frame(cbind(timelyTrapped, DayCollected))
+DaysActive    <- as.numeric(as.Date(timelyTrapped$DateCollected) - as.Date(timelyTrapped$DateDeployed))
+timelyTrapped <- as.data.frame(cbind(timelyTrapped, DaysActive))
+
+#date.df <- seq(from = as.Date("2013/01/02"), to = as.Date("2013/04/01"), by = "day")
+#days.vec <- seq(from = 1, to = 90)
+#date.df <- as.data.frame(cbind(as.Date(date.df), days.vec))
+#colnames(date.df) <- c("Date", "Day")
+
+ return(timelyTrapped)
+}
+
+#' Returns a vector of the dates where we're "cleaning" out the traps
+#' i.e. when we actually "observe" the data in the graveyard
+#' @param trapClean Cleaned trapping data as per function trap_clean.
+#' @return Vector of days where we empty the traps.
+when_trap_empty <- function(trapClean){
+  # Indices of traps that were functional during the simulation period
+  timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
+  noEmpties     <- length(unique(timelyTrapped$DateCollected)) # Number of days that traps are emptied
+  emptyDates <- unique(timelyTrapped$DateCollected) # The dates that traps are emptied
+  diff       <- as.numeric(abs(diff(as.Date(emptyDates)))) # This gives us a vector of the difference in days between each trap empty
+  diff <- c(0, diff)
+  diff <- cumsum(diff) # Entry i is the difference in days between that date and the last trap empty date
+  return(diff)
+}
+
+#' Not all traps are active during the entire simulation.
+#' This function determines if a trap is active at time t before it attempts to trap anything.
+#' @param currentTraps Cleaned trapping data with active dates converted to numerical days
+#' @return Boolean TRUE if active and FALSE if not active.
+when_trap_active <- function(currentTraps){
+
+
+}
+
