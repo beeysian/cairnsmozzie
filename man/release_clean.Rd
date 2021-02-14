@@ -15,6 +15,8 @@ release_clean(releaseDat)
 }
 \value{
 Dataframe of cleaned release data.
+Convert Dates to simulation "Days" (1 to 110)
+ we use 110 because that's the number of days in the simulation.... currently
 }
 \description{
 Clean release data.

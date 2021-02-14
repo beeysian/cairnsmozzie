@@ -1,0 +1,610 @@
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\usepackage{hyperref}
+\hypersetup{
+            pdftitle={constructors.R},
+            pdfauthor={sarah},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+\title{constructors.R}
+\author{sarah}
+\date{2020-09-26}
+
+\begin{document}
+\maketitle
+
+Creates an initial data.table of adult agents. Since this is an initial
+spread, some data is made up/dummy: for example, we don't know the ID of
+the parents. Latitude/Longitude of agents is randomly determined through
+another function init\_position and added to the data.table after
+construction.
+
+@section Data.table variables and initialisation: \itemize{
+\item{ID:     Unique ID number of agent.}} gender: Male is 0, female is
+1. Sampled by 1 Binomial trial as opposed to a Bernoulli trial as
+Bernoulli requires another package. mateID: Unique ID of their mate.
+Since no initial mosquitoes will have a mate yet, it is initialised as
+-1. Males will always have mateID as -1 since they can have multiple
+mates. enzyme: Enzyme Kinetic Score. See init for explanation.
+Initialised uniform randomly. age: Age in days. Initialised uniform
+randomly around what we would expect young adults to be. gonoCycle:
+Gonotrophic cycle. Means something different for males and females.
+males: number of times they've mated in a day, to be reset daily
+females: how many times they've laid a clutch of eggs we roughly
+estimate the gonoCycle of females based on age. timeDeath: Timestep they
+died: initialised as -1 as they are alive. typeDeath: Random
+mortality/trapped death/death due to old age: which type? whereTrapped:
+in the event of trapped death, where did they die? -1 otherwise.
+motherID: Unique ID of mother. -1 for initial adult data.table fatherID:
+Unique ID of father. -1 for initial adult data.table. infStatus: 1 if
+they carry Wolbachia, 0 if no Wolbachia, -1 for CI for initial wild type
+we assume they all start with 0. lat: Initial north/south or `y'
+coordinate of agent. Should start with -16. long: Initial east/west of
+`x' coordinate of agent. Should start with 145. @param N The number of
+initial adult agents. @param pmale Probability of being male. @return A
+data.table of N adult agents.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_adults <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(N,pmale)\{}
+\NormalTok{  noVariables <-}\StringTok{ }\DecValTok{13}
+\NormalTok{  init.dt <-}\StringTok{ }\KeywordTok{setNames}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{ncol =}\NormalTok{ noVariables, }\DataTypeTok{nrow =}\NormalTok{ N)),}
+                 \KeywordTok{c}\NormalTok{(}\StringTok{"ID"}\NormalTok{, }\StringTok{"gender"}\NormalTok{,}\StringTok{"mateID"}\NormalTok{, }\StringTok{"enzyme"}\NormalTok{,}\StringTok{"age"}\NormalTok{,}\StringTok{"gonoCycle"}\NormalTok{,}\StringTok{"timeDeath"}\NormalTok{,}\StringTok{"typeDeath"}\NormalTok{,}\StringTok{"whereTrapped"}\NormalTok{,}\StringTok{"motherID"}\NormalTok{,}\StringTok{"fatherID"}\NormalTok{,}\StringTok{"infStatus"}\NormalTok{,}\StringTok{"releaseLoc"}\NormalTok{))}
+
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{gender       <-}\StringTok{ }\KeywordTok{as.integer}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{gender, }\ControlFlowTok{function}\NormalTok{(x) x<-}\StringTok{ }\KeywordTok{rbinom}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{1}\OperatorTok{-}\NormalTok{pmale))) }\CommentTok{#Need to convert to not be a list}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{ID           <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\NormalTok{N}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{age          <-}\StringTok{ }\KeywordTok{as.integer}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{age, }\ControlFlowTok{function}\NormalTok{ (x) x<-}\KeywordTok{round}\NormalTok{(truncnorm}\OperatorTok{::}\KeywordTok{rtruncnorm}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DataTypeTok{mean=}\DecValTok{20}\NormalTok{,}\DataTypeTok{sd=}\DecValTok{2}\NormalTok{,}\DataTypeTok{a=}\DecValTok{14}\NormalTok{,}\DataTypeTok{b=}\DecValTok{30}\NormalTok{))))}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{motherID     <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{fatherID     <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{releaseLoc   <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{timeDeath    <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{typeDeath    <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{infStatus    <-}\StringTok{ }\DecValTok{0}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{whereTrapped <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{mateID       <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{enzyme       <-}\StringTok{ }\KeywordTok{as.double}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{enzyme, }\ControlFlowTok{function}\NormalTok{(x) x <-}\StringTok{ }\KeywordTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{min=}\DecValTok{0}\NormalTok{, }\DataTypeTok{max=}\DecValTok{1}\NormalTok{)))  }\CommentTok{#CHANGE: want to use initial age distribution to get spread of initial enzymes}
+
+  \CommentTok{#FIX this shit and make it work better :(}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{)] <-}\StringTok{ }\DecValTok{0} \CommentTok{#males start off at 0 because 'gonoCycle' tracks number of mating events in a day for males}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{init.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{14} \OperatorTok{&}\StringTok{ }\NormalTok{init.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{<}\StringTok{ }\DecValTok{20}\NormalTok{)] <-}\StringTok{ }\DecValTok{0}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{init.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{20} \OperatorTok{&}\StringTok{ }\NormalTok{init.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{<}\StringTok{ }\DecValTok{26}\NormalTok{)] <-}\StringTok{ }\DecValTok{1}
+\NormalTok{  init.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(init.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{init.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{26}\NormalTok{)] <-}\StringTok{ }\DecValTok{2}
+
+  \CommentTok{#initial position of each mosquito, then combine with rest of dataframe}
+\NormalTok{  position.dt <-}\StringTok{ }\KeywordTok{init_position}\NormalTok{(boundaryDat,N)}
+\NormalTok{  init.dt     <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(init.dt,position.dt)}
+
+  \KeywordTok{return}\NormalTok{(init.dt)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Creates an initial data.table of juvenile agents. Since this is an
+initial spread, some data is made up/dummy: for example, we don't know
+the ID of the parents. Latitude/Longitude of agents is randomly
+determined and added to the data.table after construction.
+
+@section Data.table variables and initialisation: \describe{
+\item{motherID:}{ID of mother.}
+\item{fatherID:}{ID of father.}
+\item{age:}{Age in days. Initialised uniform randomly around what we would expect
+             young adults to be.}
+\item{stage:}{Development stage of clutch. 1: egg, 2: larvae, 3: pupae.}
+\item{infProb:}{Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+              Incompatability, else infProb is nonzero.}
+\item{lat:}{Initial north/south or 'y' coordinate of agent. Should start with -16.}
+\item{long:}{Initial east/west of 'x' coordinate of agent. Should start with 145.}
+\item{clutchSize:}{Number of juveniles in the clutch.}
+\item{enzyme:}{Enzyme Kinetic Score of agents. Initialised uniform randomly. FIX}
+\item{pDeath:}{Probability of death.}
+} @param Njuv The number of initial juvenile agents. @return A
+data.table of Njuv juvenile agents.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_juveniles <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(Njuv)\{}
+\NormalTok{  juv.dt <-}\StringTok{ }\KeywordTok{setNames}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{ncol =} \DecValTok{8}\NormalTok{, }\DataTypeTok{nrow =}\NormalTok{ Njuv)),}
+          \KeywordTok{c}\NormalTok{(}\StringTok{"motherID"}\NormalTok{,}\StringTok{"fatherID"}\NormalTok{,}\StringTok{"age"}\NormalTok{,}\StringTok{"stage"}\NormalTok{ ,}\StringTok{"infProb"}\NormalTok{, }\StringTok{"clutchSize"}\NormalTok{,}\StringTok{"enzyme"}\NormalTok{,}\StringTok{"pDeath"}\NormalTok{))}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{motherID <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{fatherID <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{age      <-}\StringTok{ }\KeywordTok{as.integer}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(juv.dt}\OperatorTok{$}\NormalTok{age, }\ControlFlowTok{function}\NormalTok{(x) x <-}\StringTok{ }\KeywordTok{round}\NormalTok{(}\KeywordTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{min=}\DecValTok{0}\NormalTok{, }\DataTypeTok{max=}\DecValTok{14}\NormalTok{),}\DecValTok{0}\NormalTok{))) }\CommentTok{#Uniform between 0 and 14 as a quick fix- FIX}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{stage    <-}\StringTok{ }\KeywordTok{mapply}\NormalTok{(}\DataTypeTok{FUN =}\NormalTok{ init_juv_stage, juv.dt}\OperatorTok{$}\NormalTok{age)}
+
+  \CommentTok{#this can be replaced with a binary for inf/noninf since fringe cases lead to CI}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{infProb  <-}\StringTok{ }\DecValTok{0} \CommentTok{#dummy setup, this will be sampled in RABC (also need correct value from Carla)}
+
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{clutchSize <-}\StringTok{ }\NormalTok{param}\OperatorTok{$}\NormalTok{eta_}\DecValTok{1} \CommentTok{#since these will always be wild type}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{enzyme   <-}\StringTok{ }\KeywordTok{as.double}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(juv.dt}\OperatorTok{$}\NormalTok{enzyme, }\ControlFlowTok{function}\NormalTok{(x) x <-}\StringTok{ }\KeywordTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{min=}\DecValTok{0}\NormalTok{, }\DataTypeTok{max=}\FloatTok{0.95}\NormalTok{))) }\CommentTok{#CHANGE: this should not be uniform}
+\NormalTok{  juv.dt}\OperatorTok{$}\NormalTok{pDeath   <-}\StringTok{ }\NormalTok{param}\OperatorTok{$}\NormalTok{alpha_j }\CommentTok{#fix this. see removeNatDeath in Carla's code}
+
+  \CommentTok{##BUT for the moment we're just using the same method as the adult lat/long to get working prototype}
+  \CommentTok{#juv.dt$lat  <- lapply(juv.dt$lat, function (x) x<-round(runif(1, min = min(boundaryDat$Lat), max = max(boundaryDat$Lat)),6))}
+  \CommentTok{#juv.dt$long <- lapply(juv.dt$long, function (x) x<-round(runif(1, min = min(boundaryDat$Long), max = max(boundaryDat$Long)),6))}
+
+  \CommentTok{#The following two lines calculate lat, long and gridID}
+\NormalTok{  position.dt <-}\StringTok{ }\KeywordTok{init_position}\NormalTok{(boundaryDat, Njuv)}
+\NormalTok{  juv.dt      <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(juv.dt,position.dt)}
+
+
+  \KeywordTok{return}\NormalTok{(juv.dt)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Creates a data.table of newly laid eggs to add to the juvenile
+data.table.
+
+Input is the indices of mothers attempting to lay eggs. Much of this
+code is regarding the handling of CI: \itemize{
+ \item{Neither mother nor father carry Wolbachia: no Wolbachia in offspring}
+ \item{Mother carries Wolbachia: offspring have nonzero probability of carrying}
+ \item{Mother does not carry, father does: offspring suffer CI and won't hatch}
+} Latitude/Longitude of agents is determined as the same position that
+the mother is currently at. Clutch sizes, as per literature, differ
+depending on Wolbachia status of mother. This is handled by the ABC
+parameter eta\_1 and eta\_2.
+
+@section data.table variables and initialisation: \describe{
+\item{motherID:}   {ID of mother.}
+\item{fatherID:}   {ID of father.}
+\item{age:}        {Age in days. Initialised at 0 since they're new!}
+\item{stage:}      {Development stage of clutch. Should only be 1 since these are eggs.}
+\item{infProb:}    {Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+                  Incompatability, else infProb is nonzero.}
+\item{lat:}        {Initial north/south or 'y' coordinate of agent.
+                  Should start with -16. Should be same as mother.}
+\item{long:}       {Initial east/west of 'x' coordinate of agent.
+                  Should start with 145. Should be same as mother.}
+\item{clutchSize:} {Number of juveniles in the clutch.}
+\item{pDeath:}     {Probability of death.}
+} @param toLay List of the indices of mothers attempting to lay a
+clutch. @param eta\_1 Clutch size of non-Wolbachia carrying mothers.
+@param eta\_2 Clutch size Wolbachia carrying mothers. @param p\_1
+Probability of complete maternal Wolbachia transmission. @param alpha\_j
+Juvenile mortality rate. @return A data.table of juvenile agents in
+stage 1 corresponding to each mother in toLay.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_eggs <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(toLay, eta_}\DecValTok{1}\NormalTok{, eta_}\DecValTok{2}\NormalTok{, p_}\DecValTok{1}\NormalTok{, alpha_j)\{}
+\NormalTok{  noMothers <-}\StringTok{ }\KeywordTok{length}\NormalTok{(toLay)}
+  \CommentTok{#' Subset mozzie.dt to just include mothers who are laying}
+  \CommentTok{#' this makes it easy to assign variable values on to children}
+\NormalTok{  mothers.dt <-}\StringTok{ }\KeywordTok{filter}\NormalTok{(mozzie.dt, ID }\OperatorTok{%in%}\StringTok{ }\NormalTok{toLay)}
+\NormalTok{  eggs.dt <-}\StringTok{ }\KeywordTok{data.table}\NormalTok{(}\DataTypeTok{motherID =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{fatherID =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{motherStatus =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{fatherStatus =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{age =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{stage =} \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{infProb =} \KeywordTok{numeric}\NormalTok{(noMothers) ,}
+                        \DataTypeTok{lat =} \KeywordTok{double}\NormalTok{(noMothers),}
+                        \DataTypeTok{long =} \KeywordTok{double}\NormalTok{(noMothers),}
+                        \DataTypeTok{clutchSize =}  \KeywordTok{numeric}\NormalTok{(noMothers),}
+                        \DataTypeTok{enzyme =} \KeywordTok{double}\NormalTok{(noMothers),}
+                        \DataTypeTok{pDeath =} \KeywordTok{double}\NormalTok{(noMothers),}
+                        \DataTypeTok{gridID =} \KeywordTok{integer}\NormalTok{(noMothers))}
+
+
+  \CommentTok{# 28/6/20: changing this to use MOTHER ID and NOT THE INDEX YOU GET FROM which()}
+
+  \CommentTok{#eggs.dt$motherID <- toLay}
+  \CommentTok{#eggs.dt$fatherID <- mozzie.dt$mateID[toLay]}
+
+  \CommentTok{#'try and use mothers.dt as much as possible as this ensures we}
+  \CommentTok{#'are keeping everything in the right order}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{motherID <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{ID}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{fatherID <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{mateID}
+  \CommentTok{#eggs.dt$fatherID <- mozzie.dt$mateID[mozzie.dt$ID  %in% toLay]}
+
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{age    <-}\StringTok{ }\DecValTok{0} \CommentTok{#because they're new!}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{stage  <-}\StringTok{ }\DecValTok{1} \CommentTok{#because they're eggs!}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{enzyme <-}\StringTok{ }\DecValTok{0} \CommentTok{#Since they are new eggs, they haven't had the "chance" to accumulate enzyme yet}
+  \CommentTok{#eggs.dt$lat    <- mozzie.dt$lat[toLay] #mother's position}
+  \CommentTok{#eggs.dt$long   <- mozzie.dt$long[toLay] #mother's position}
+
+  \CommentTok{# eggs.dt$lat  <- mozzie.dt$lat[mozzie.dt$ID  %in% toLay]}
+  \CommentTok{# eggs.dt$long <- mozzie.dt$long[mozzie.dt$ID  %in% toLay]}
+
+  \CommentTok{#' Clutch will be initialised at the same position as its mother}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{lat    <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{lat}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{long   <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{long}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{gridID <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{gridID}
+
+  \CommentTok{# motherStatus is just the mother's infStatus}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{motherStatus <-}\StringTok{ }\NormalTok{mothers.dt}\OperatorTok{$}\NormalTok{infStatus}
+
+  \CommentTok{#clutch size determined by mother's infStatus:}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{clutchSize[}\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{)] <-}\StringTok{ }\NormalTok{eta_}\DecValTok{2}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{clutchSize[}\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{)] <-}\StringTok{ }\NormalTok{eta_}\DecValTok{1}
+
+  \CommentTok{#eggs.dt$gridID <- as.integer(mapply(FUN = get_gridID, eggs.dt$lat, eggs.dt$long))}
+
+  \CommentTok{# This code needs to be removed- fix code so I don't have to do this --------}
+  \CommentTok{# 21-09-20: I actually don't think we need this anymore: I think I fixed it :)}
+\NormalTok{  eggs.dt[eggs.dt}\OperatorTok{==}\StringTok{"NULL"}\NormalTok{] <-}\StringTok{ }\DecValTok{0}
+\NormalTok{  eggs.dt <-}\StringTok{ }\KeywordTok{na.omit}\NormalTok{(eggs.dt) }\CommentTok{#CHANGE THIS it shouldnt be happening}
+  \CommentTok{#eggs.dt <- eggs.dt[complete.cases(eggs.dt$infProb),]}
+
+  \CommentTok{#eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 1)] <- eta_2 #finish}
+  \CommentTok{#eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 0)] <- eta_1 #finish}
+\CommentTok{#  eggs.dt$clutchSize[which(mozzie.dt$infStatus[mozzie.dt$ID  %in% toLay] == 1)] <- eta_2 #finish}
+\CommentTok{#  eggs.dt$clutchSize[which(mozzie.dt$infStatus[mozzie.dt$ID  %in% toLay] == 0)] <- eta_1 #finish}
+
+
+  \CommentTok{# CI ----}
+       \CommentTok{#eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% mozzie.dt$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status}
+
+       \CommentTok{#eggs.dt$fatherStatus <- mozzie.dt$infStatus[mozzie.dt$mateID[toLay]]}
+       \CommentTok{#eggs.dt$motherStatus <- mozzie.dt$infStatus[toLay] #same but for mother}
+
+  \CommentTok{# 5/7/20 THIS WORKS.... for one number}
+  \CommentTok{#eggs.dt$fatherStatus[1] <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID[1])]}
+  \CommentTok{# SO honestly.... just do a loop for now}
+
+  \CommentTok{# 21-09-20 replace this:}
+  \CommentTok{# eggs.dt$motherStatus <- mozzie.dt$infStatus[mozzie.dt$ID %in% toLay] # mother's Wolbachia status}
+  \CommentTok{#}
+  \CommentTok{# f.IDs       <- eggs.dt$fatherID # List of father IDs}
+  \CommentTok{# alive.f.IDs <- which(f.IDs %in% mozzie.dt$ID) # Which eggs have alive fathers}
+  \CommentTok{# grave.f.IDs <- which(f.IDs %in% graveyard$ID) # Which eggs have fathers in the graveyard}
+  \CommentTok{# end replacement for 21-09-20}
+
+  \CommentTok{#'below is me adapting the above for optimisation}
+  \CommentTok{#'The idea here is to split eggs.dt into those who have alive dads and thos who}
+  \CommentTok{#'have dead dads. I'll then get the wolbachia status (carry/not carry) for each agent}
+  \CommentTok{#'and then rowbind them together at the end.}
+\NormalTok{  alive.dads <-}\StringTok{ }\KeywordTok{filter}\NormalTok{(eggs.dt, fatherID }\OperatorTok{%in%}\StringTok{ }\NormalTok{mozzie.dt}\OperatorTok{$}\NormalTok{ID)}
+\NormalTok{  dead.dads <-}\StringTok{ }\KeywordTok{filter}\NormalTok{(eggs.dt, fatherID }\OperatorTok{%in%}\StringTok{ }\NormalTok{graveyard}\OperatorTok{$}\NormalTok{ID)}
+  \CommentTok{#'----- end adaptation}
+
+  \CommentTok{# We need to do two loops: one for those who have alive fathers and one for those whose fathers are in the}
+\CommentTok{#}
+\CommentTok{#   system.time(}
+\CommentTok{#   for(i in alive.f.IDs)\{}
+\CommentTok{#     eggs.dt$fatherStatus[i] <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID[i])]}
+\CommentTok{#   \})}
+\CommentTok{#}
+\CommentTok{#   # Now for those with dads in the graveyard}
+\CommentTok{#   system.time(}
+\CommentTok{#   for(j in grave.f.IDs)\{}
+\CommentTok{#     eggs.dt$fatherStatus[j] <- graveyard$infStatus[which(graveyard$ID %in% eggs.dt$fatherID[j])]}
+\CommentTok{#   \})}
+
+
+  \CommentTok{#' EDIT 21-9-20: VECTORISE THE ABOVE CODE}
+  \CommentTok{#' We need to do two loops: one for those who have alive fathers and one for those whose fathers are dead}
+  \CommentTok{#' r is a vector of the father's infStatus for every juvenile clutch in alive.dads.}
+ \KeywordTok{system.time}\NormalTok{(}
+\NormalTok{  r <-}\StringTok{ }\KeywordTok{foreach}\NormalTok{ (}\DataTypeTok{i =} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(alive.dads}\OperatorTok{$}\NormalTok{fatherID), }\DataTypeTok{.combine =}\NormalTok{ c) }\OperatorTok{%dopar%}\StringTok{ }\NormalTok{\{}
+\NormalTok{    mozzie.dt}\OperatorTok{$}\NormalTok{infStatus[}\KeywordTok{which}\NormalTok{(mozzie.dt}\OperatorTok{$}\NormalTok{ID }\OperatorTok{==}\StringTok{ }\NormalTok{alive.dads}\OperatorTok{$}\NormalTok{fatherID[i])]}
+\NormalTok{  \})}
+\NormalTok{  alive.dads}\OperatorTok{$}\NormalTok{fatherStatus <-}\StringTok{ }\NormalTok{r}
+  \CommentTok{#' Now for those with dads in the graveyard}
+
+ \KeywordTok{system.time}\NormalTok{(}
+\NormalTok{  s <-}\StringTok{ }\KeywordTok{foreach}\NormalTok{ (}\DataTypeTok{j =} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(dead.dads}\OperatorTok{$}\NormalTok{fatherID), }\DataTypeTok{.combine =}\NormalTok{ c) }\OperatorTok{%dopar%}\StringTok{ }\NormalTok{\{}
+\NormalTok{    graveyard}\OperatorTok{$}\NormalTok{infStatus[}\KeywordTok{which}\NormalTok{(graveyard}\OperatorTok{$}\NormalTok{ID }\OperatorTok{==}\StringTok{ }\NormalTok{dead.dads}\OperatorTok{$}\NormalTok{fatherID[j])]}
+\NormalTok{  \})}
+\NormalTok{  dead.dads}\OperatorTok{$}\NormalTok{fatherStatus <-}\StringTok{ }\NormalTok{s}
+
+  \CommentTok{# smoosh these back together}
+\NormalTok{  l <-}\StringTok{ }\KeywordTok{list}\NormalTok{(alive.dads, dead.dads)}
+\NormalTok{  eggs.dt <-}\StringTok{ }\KeywordTok{rbindlist}\NormalTok{(l, }\DataTypeTok{use.names =} \OtherTok{TRUE}\NormalTok{)}
+  \CommentTok{#eggs.dt <- rbind(alive.dads, dead.dads)}
+
+
+  \CommentTok{# -----}
+
+              \CommentTok{# testing out code 5/7/20: remove later ----}
+              \CommentTok{#test <- eggs.dt$fatherID}
+              \CommentTok{#test.l <- which(test %in% mozzie.dt$ID) # which eggs have alive fathers}
+              \CommentTok{#test.g <- which(test %in% graveyard$ID) # which eggs have fathers in the graveyard}
+
+              \CommentTok{#test.lf <- eggs.dt$fatherID[test.l] #fatherIDs of alive fathers}
+              \CommentTok{#test.gf <- eggs.dt$fatherID[test.g] #fatherIDs of dead fathers}
+
+              \CommentTok{#which mozzies have the ID of those alive fathers}
+              \CommentTok{#fatherstat.lf <- mozzie.dt$infStatus[test.lf %in% mozzie.dt$fatherID]}
+              \CommentTok{# ok so we need to handle dads that are in the graveyard....}
+              \CommentTok{#fatherstat.l <- mozzie.dt$infStatus[test.l]}
+              \CommentTok{#fatherstat.g <- graveyard$infStatus[test.g]}
+
+              \CommentTok{#eggs.dt$fatherStatus[test.l] <- mozzie.dt$infStatus[test %in% mozzie.dt$ID]}
+
+              \CommentTok{#eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID)] #THIS AINT WORKIN}
+              \CommentTok{# End 5/7/20 playing around ----}
+
+  \CommentTok{# Case I: If mother is a Wolbachia carrier then offspring should be (with probability p_1)}
+  \CommentTok{#eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- (1-p_1)}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{infProb[}\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{)] <-}\StringTok{ }\NormalTok{p_}\DecValTok{1}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{pDeath[}\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{)]  <-}\StringTok{ }\NormalTok{alpha_j }\CommentTok{#natural death rate}
+
+  \CommentTok{#FIX : HACKY FOR LOOP for ANZIAM 2/2/19}
+
+\NormalTok{  motheruninf <-}\StringTok{ }\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{)}
+
+
+  \CommentTok{# This is to remove the confusing if/then statements below}
+\NormalTok{  which.wt <-}\StringTok{ }\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{0} \OperatorTok{&}\StringTok{ }\NormalTok{eggs.dt}\OperatorTok{$}\NormalTok{fatherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{) }\CommentTok{#Which are Wild Type/no Wolbachia}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{infProb[which.wt] <-}\StringTok{ }\DecValTok{0}
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{pDeath[which.wt] <-}\StringTok{ }\NormalTok{alpha_j}
+
+
+\NormalTok{  which.ci <-}\StringTok{ }\KeywordTok{which}\NormalTok{(eggs.dt}\OperatorTok{$}\NormalTok{motherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{0} \OperatorTok{&}\StringTok{ }\NormalTok{eggs.dt}\OperatorTok{$}\NormalTok{fatherStatus }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{)}
+
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{infProb[which.ci] <-}\StringTok{ }\DecValTok{-1}
+
+\NormalTok{  eggs.dt}\OperatorTok{$}\NormalTok{pDeath[which.ci] <-}\StringTok{ }\DecValTok{-1}
+
+ \CommentTok{# print("get up to here")}
+  \CommentTok{#below is deprecated- remove}
+\CommentTok{#  for(i in 1:length(motheruninf))\{}
+\CommentTok{#    if(eggs.dt$fatherStatus[motheruninf[i]] == 0)\{}
+\CommentTok{#      eggs.dt$infProb[i] <- 0}
+\CommentTok{#      eggs.dt$pDeath <- alpha_j}
+\CommentTok{#    \}}
+\CommentTok{#    else if(eggs.dt$fatherStatus[motheruninf[i]] == 1)\{}
+\CommentTok{#      eggs.dt$infProb[i] <- -1}
+\CommentTok{#      eggs.dt$pDeath[i] <- -1}
+\CommentTok{#    \}}
+\CommentTok{#    else\{}
+      \CommentTok{#error handling case; offspring are just wild CHECK}
+\CommentTok{#      eggs.dt$infProb[i] <- 0}
+\CommentTok{#      eggs.dt$pDeath <- alpha_j}
+\CommentTok{#    \}}
+\CommentTok{#  \}}
+  \CommentTok{#Get rid of "extra information" in data table that we no longer need}
+\NormalTok{  to.drop <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"motherStatus"}\NormalTok{,}\StringTok{"fatherStatus"}\NormalTok{)}
+  \CommentTok{#eggs.dt <- eggs.dt[,c("motherStatus","fatherStatus") := NULL] #this only works if new.eggs.dt is purely a data.table.}
+  \CommentTok{#it seems like some kind of data.frame and data.table chimera, I'm terrified but will ignore it}
+\NormalTok{  eggs.dt <-}\StringTok{ }\NormalTok{eggs.dt[ , }\OperatorTok{!}\NormalTok{(}\KeywordTok{names}\NormalTok{(eggs.dt) }\OperatorTok{%in%}\StringTok{ }\NormalTok{to.drop)]}
+
+  \KeywordTok{return}\NormalTok{(eggs.dt)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Simulates a release of Wolbachia-carrying mosquitoes. Releases in this
+experiment are always adults. Much of this is functionally similar to
+initialise\_adults. Since this is a release, some data is made up/dummy:
+for example, we don't know the ID of the parents. Latitude/Longitude of
+agents is given by data supplied by the WMP.
+
+@section Data.table variables and initialisation: \describe{
+\item{ID:}{Unique ID number of agent.}
+\item{gender:}{Male is 0, female is 1. We know proportions of female/males released
+         from data.}
+\item{mateID:}{Unique ID of their mate. Since no initial mosquitoes will have a mate
+        yet, it is initialised as -1.
+        Males will always have mateID as -1 since they can have multiple mates.}
+\item{enzyme:}{Enzyme Kinetic Score. See init for explanation. Initialised
+        uniform randomly.}
+\item{age:}{Age in days. Initialised uniform randomly around what we would expect
+        young adults to be.}
+\item{gonoCycle:}{Gonotrophic cycle. Means something different for males and females.
+           males: number of times they've mated in a day, to be reset daily
+           females: how many times they've laid a clutch of eggs
+           we roughly estimate the gonoCycle of females based on age.}
+\item{timeDeath:}{Timestep they died: initialised as -1 as they are alive.}
+\item{typeDeath:}{Random mortality/trapped death/death due to old age: which type?}
+\item{whereTrapped:}{In the event of trapped death, where did they die? -1 otherwise.}
+\item{motherID:}{Unique ID of mother. -1 since wild release.}
+\item{fatherID:}{Unique ID of father. -1 since wild release.}
+\item{infStatus:}{1 if they carry Wolbachia, 0 if no Wolbachia, -1 for CI.
+           They should mostly be 1 with a few 0 due to incomplete transmission.}
+\item{lat:}{Initial north/south or 'y' coordinate of agent. Should start with -16.}
+\item{long:}{Initial east/west of 'x' coordinate of agent. Should start with 145.}
+} @param noReleased The number of initial adult agents. @param noMale
+Number of males. @param noFemale Number of females. @param lat Latitude
+of release site. @param long Longitude of release site. @param idStart
+Index starting for new mosquito ID numbers. @param GID Unique identifier
+for a release site. From data. @return A data.table of N adult agents.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_release <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(noReleased, noMale, noFemale, lat, long, idStart, GID)\{}
+\NormalTok{  propInfRelease <-}\StringTok{ }\DecValTok{1} \CommentTok{#proportion of released mosquitoes that carry Wolbachia (CHECK: get actual value from WMP)}
+\NormalTok{  noVariables <-}\StringTok{ }\DecValTok{16} \CommentTok{#number of variables used to track state of mozzie minus 2 (lat & long). this is so I make sure to remember to change it as necessary}
+  \CommentTok{#18/7: change release.dt so we just have a numeric age for mosquitoes rather than timeBirth/timeAdult/timeDeath}
+\NormalTok{  release.dt <-}\StringTok{ }\KeywordTok{setNames}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{ncol =}\NormalTok{ noVariables, }\DataTypeTok{nrow =}\NormalTok{ noReleased)), }\KeywordTok{c}\NormalTok{(}\StringTok{"ID"}\NormalTok{, }\StringTok{"gender"}\NormalTok{, }\StringTok{"lat"}\NormalTok{,}\StringTok{"long"}\NormalTok{,}\StringTok{"mateID"}\NormalTok{, }\StringTok{"enzyme"}\NormalTok{,}\StringTok{"age"}\NormalTok{,}\StringTok{"gonoCycle"}\NormalTok{,}\StringTok{"timeDeath"}\NormalTok{,}\StringTok{"typeDeath"}\NormalTok{,}\StringTok{"whereTrapped"}\NormalTok{,}\StringTok{"motherID"}\NormalTok{,}\StringTok{"fatherID"}\NormalTok{,}\StringTok{"infStatus"}\NormalTok{,}\StringTok{"releaseLoc"}\NormalTok{,}\StringTok{"gridID"}\NormalTok{))}
+\CommentTok{#  release.dt <- data.table(ID = integer(noReleased), gender = numeric(noReleased), mateID = numeric(noReleased), enzyme = numeric(noReleased), age = numeric(noReleased), gonoCycle = numeric(noReleased), timeDeath = numeric(noReleased), typeDeath = numeric(noReleased), whereTrapped = numeric(noReleased), motherID = numeric(noReleased), fatherID = numeric(noReleased), infStatus = numeric(noReleased), releaseLoc = numeric(noReleased), long = numeric(noReleased), lat = numeric(noReleased), gridID = integer(noReleased) )}
+
+
+  \CommentTok{#print(release.dt)}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gender <-}\StringTok{ }\DecValTok{0} \CommentTok{#Initialise all as male}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gender[}\DecValTok{1}\OperatorTok{:}\NormalTok{noFemale] <-}\StringTok{ }\DecValTok{1} \CommentTok{#Make #noFemale entries female}
+  \CommentTok{#release.dt$gender <- lapply(release.dt$gender, function(x) x <- rbinom(1,1,1 - pmale)) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale}
+  \CommentTok{#release.dt$ID     <- (max(mozzie.dt$ID) + 1):((max(mozzie.dt$ID)) + noReleased) #unique ID for each mosquito #CHECK}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{ID <-}\StringTok{ }\NormalTok{idStart}\OperatorTok{:}\NormalTok{(idStart}\OperatorTok{+}\NormalTok{noReleased}\DecValTok{-1}\NormalTok{) }\CommentTok{#Unique ID for each mosquito}
+
+  \CommentTok{#release.dt$age <- lapply(release.dt$age, function (x) x<-round(rtruncnorm(1,mean=20,sd=2,a=14,b=30)))}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{age        <-}\StringTok{ }\KeywordTok{as.integer}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{age, }\ControlFlowTok{function}\NormalTok{(x) x <-}\StringTok{ }\KeywordTok{round}\NormalTok{(}\KeywordTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DataTypeTok{min=}\DecValTok{18}\NormalTok{,}\DataTypeTok{max=}\DecValTok{21}\NormalTok{),}\DecValTok{0}\NormalTok{)))}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{motherID   <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{fatherID   <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{releaseLoc <-}\StringTok{ }\NormalTok{GID}
+  \CommentTok{#release.dt$long <- 145.760}
+  \CommentTok{#release.dt$lat <- -16.918}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{mateID     <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{long       <-}\StringTok{ }\NormalTok{long}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{lat        <-}\StringTok{ }\NormalTok{lat}
+\NormalTok{  releaseGrid           <-}\StringTok{ }\KeywordTok{get_gridID}\NormalTok{(}\DataTypeTok{testlat =}\NormalTok{ lat, }\DataTypeTok{testlong =}\NormalTok{ long) }\CommentTok{#Every mozzie released will be at the same grid}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gridID     <-}\StringTok{ }\NormalTok{releaseGrid}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{timeDeath  <-}\StringTok{ }\DecValTok{-1}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{typeDeath  <-}\StringTok{ }\DecValTok{-1}
+  \CommentTok{#release.dt$infStatus    <- lapply(release.dt$infStatus, function(x) x <-rbinom(1,1,propInfRelease))}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{infStatus  <-}\StringTok{ }\DecValTok{1}
+  \CommentTok{#infStatus: 1 for wolbachia, 0 for no wolbachia, -1 for CI}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{whereTrapped <-}\StringTok{ }\DecValTok{-1}
+
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{enzyme <-}\StringTok{ }\KeywordTok{as.double}\NormalTok{(}\KeywordTok{lapply}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{enzyme, }\ControlFlowTok{function}\NormalTok{(x) x <-}\StringTok{ }\KeywordTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{min=}\DecValTok{0}\NormalTok{, }\DataTypeTok{max=}\DecValTok{1}\NormalTok{)))  }\CommentTok{#CHANGE: want to use initial age distribution to get spread of initial enzymes}
+
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{)] <-}\StringTok{ }\DecValTok{0} \CommentTok{#males start off at 0 because 'gonoCycle' tracks number of mating events in a day for males}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{release.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{14} \OperatorTok{&}\StringTok{ }\NormalTok{release.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{<}\StringTok{ }\DecValTok{20}\NormalTok{)] <-}\StringTok{ }\DecValTok{0}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{release.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{20} \OperatorTok{&}\StringTok{ }\NormalTok{release.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{<}\StringTok{ }\DecValTok{26}\NormalTok{)] <-}\StringTok{ }\DecValTok{1}
+\NormalTok{  release.dt}\OperatorTok{$}\NormalTok{gonoCycle[}\KeywordTok{which}\NormalTok{(release.dt}\OperatorTok{$}\NormalTok{gender }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{release.dt}\OperatorTok{$}\NormalTok{age }\OperatorTok{>=}\DecValTok{26}\NormalTok{)] <-}\StringTok{ }\DecValTok{2}
+
+  \KeywordTok{return}\NormalTok{(release.dt)}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Initialises graveyard data.table The graveyard is where the entries of
+all dead adult mozzies go @return An empty data.table that's ready to be
+rbind()-ed
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_graveyard <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{()\{}
+
+\NormalTok{  graveyard <-}\StringTok{ }\KeywordTok{data.table}\NormalTok{(}
+      \DataTypeTok{ID           =} \KeywordTok{integer}\NormalTok{(),}
+      \DataTypeTok{gender       =} \KeywordTok{integer}\NormalTok{(),}
+      \DataTypeTok{mateID       =} \KeywordTok{double}\NormalTok{(),}
+      \DataTypeTok{enzyme       =} \KeywordTok{double}\NormalTok{(),}
+      \DataTypeTok{age          =} \KeywordTok{integer}\NormalTok{(),}
+      \DataTypeTok{gonoCycle    =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{timeDeath    =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{typeDeath    =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{whereTrapped =} \KeywordTok{double}\NormalTok{(),}
+      \DataTypeTok{motherID     =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{fatherID     =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{infStatus    =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{releaseLoc   =} \KeywordTok{numeric}\NormalTok{(),}
+      \DataTypeTok{long         =} \KeywordTok{double}\NormalTok{(),}
+      \DataTypeTok{lat          =} \KeywordTok{double}\NormalTok{(),}
+      \DataTypeTok{gridID       =} \KeywordTok{numeric}\NormalTok{()}
+\NormalTok{  )}
+\KeywordTok{return}\NormalTok{(graveyard)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Initialises juvenile graveyard data.table The entries here are for egg
+clutches that won't hatch due to CI This does not include juveniles that
+died of natural causes (since that's just a number in the juv.dt
+data.table) @return Initialised data.table of the juvenile graveyard.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{initialise_juv_graveyard <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{()\{}
+
+\NormalTok{ juv.graveyard <-}\StringTok{ }\KeywordTok{data.table}\NormalTok{(}
+   \DataTypeTok{motherID   =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{fatherID   =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{age        =} \KeywordTok{integer}\NormalTok{(),}
+   \DataTypeTok{stage      =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{infProb    =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{clutchSize =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{enzyme     =} \KeywordTok{double}\NormalTok{(),}
+   \DataTypeTok{pDeath     =} \KeywordTok{numeric}\NormalTok{(),}
+   \DataTypeTok{long       =} \KeywordTok{double}\NormalTok{(),}
+   \DataTypeTok{lat        =} \KeywordTok{double}\NormalTok{(),}
+   \DataTypeTok{gridID     =} \KeywordTok{integer}\NormalTok{()}
+\NormalTok{   )}
+
+  \KeywordTok{return}\NormalTok{(juv.graveyard)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\end{document}

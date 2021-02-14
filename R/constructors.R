@@ -2,7 +2,7 @@
 #' Since this is an initial spread, some data is made up/dummy:
 #' for example, we don't know the ID of the parents.
 #' Latitude/Longitude of agents is randomly determined through
-#' another function \code{init_position} and added to the data.table
+#' another function init_position and added to the data.table
 #' after construction.
 #'
 #' @section Data.table variables and initialisation:
@@ -13,14 +13,14 @@
 #' mateID: Unique ID of their mate. Since no initial mosquitoes will have a mate
 #'         yet, it is initialised as -1.
 #'         Males will always have mateID as -1 since they can have multiple mates.
-#' enzyme: Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+#' enzyme: Enzyme Kinetic Score. See init for explanation. Initialised
 #'         uniform randomly.
 #' age:    Age in days. Initialised uniform randomly around what we would expect
 #'         young adults to be.
 #' gonoCycle: Gonotrophic cycle. Means something different for males and females.
 #'            males: number of times they've mated in a day, to be reset daily
 #'            females: how many times they've laid a clutch of eggs
-#'            we roughly estimate the gonoCycle of females based on \code{age}.
+#'            we roughly estimate the gonoCycle of females based on age.
 #' timeDeath: Timestep they died: initialised as -1 as they are alive.
 #' typeDeath: Random mortality/trapped death/death due to old age: which type?
 #' whereTrapped: in the event of trapped death, where did they die? -1 otherwise.
@@ -32,15 +32,15 @@
 #' long:     Initial east/west of 'x' coordinate of agent. Should start with 145.
 #' @param N The number of initial adult agents.
 #' @param pmale Probability of being male.
-#' @return A data.table of \code{N} adult agents.
-initialise_adults <- function(N,pmale){
+#' @return A data.table of N adult agents.
+initialise_adults <- function(N, pmale, boundaryDat, grid.df){
   noVariables <- 13
   init.dt <- setNames(data.frame(matrix(ncol = noVariables, nrow = N)),
                  c("ID", "gender","mateID", "enzyme","age","gonoCycle","timeDeath","typeDeath","whereTrapped","motherID","fatherID","infStatus","releaseLoc"))
 
   init.dt$gender       <- as.integer(lapply(init.dt$gender, function(x) x<- rbinom(1,1,1-pmale))) #Need to convert to not be a list
   init.dt$ID           <- 1:N
-  init.dt$age          <- as.integer(lapply(init.dt$age, function (x) x<-round(truncnorm::rtruncnorm(1,mean=20,sd=2,a=14,b=30))))
+  init.dt$age          <- as.integer(lapply(init.dt$age, function (x) x<-round(truncnorm::rtruncnorm(1,mean=20,sd=2,a=15,b=30))))
   init.dt$motherID     <- -1
   init.dt$fatherID     <- -1
   init.dt$releaseLoc   <- -1
@@ -58,8 +58,9 @@ initialise_adults <- function(N,pmale){
   init.dt$gonoCycle[which(init.dt$gender == 1 & init.dt$age >=26)] <- 2
 
   #initial position of each mosquito, then combine with rest of dataframe
-  position.dt <- init_position(boundaryDat,N)
-  init.dt     <- cbind(init.dt,position.dt)
+  #print(head(grid.df))
+  position.dt <- init_position(boundaryDat, N, grid.df)
+  init.dt     <- cbind(init.dt, position.dt)
 
   return(init.dt)
 }
@@ -86,8 +87,8 @@ initialise_adults <- function(N,pmale){
 #' \item{pDeath:}{Probability of death.}
 #' }
 #' @param Njuv The number of initial juvenile agents.
-#' @return A data.table of \code{Njuv} juvenile agents.
-initialise_juveniles <- function(Njuv){
+#' @return A data.table of Njuv juvenile agents.
+initialise_juveniles <- function(Njuv, param, grid.df, boundaryDat){
   juv.dt <- setNames(data.frame(matrix(ncol = 8, nrow = Njuv)),
           c("motherID","fatherID","age","stage" ,"infProb", "clutchSize","enzyme","pDeath"))
   juv.dt$motherID <- -1
@@ -107,7 +108,7 @@ initialise_juveniles <- function(Njuv){
   #juv.dt$long <- lapply(juv.dt$long, function (x) x<-round(runif(1, min = min(boundaryDat$Long), max = max(boundaryDat$Long)),6))
 
   #The following two lines calculate lat, long and gridID
-  position.dt <- init_position(boundaryDat, Njuv)
+  position.dt <- init_position(boundaryDat, Njuv, grid.df)
   juv.dt      <- cbind(juv.dt,position.dt)
 
 
@@ -129,53 +130,196 @@ initialise_juveniles <- function(Njuv){
 #' This is handled by the ABC parameter eta_1 and eta_2.
 #'
 #' @section data.table variables and initialisation:
-#' \itemize{
-#' \item{motherID:   ID of mother.}
-#' \item{fatherID:   ID of father.}
-#' \item{age:        Age in days. Initialised at 0 since they're new!}
-#' \item{stage:      Development stage of clutch. Should only be 1 since these are eggs.}
-#' \item{infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+#' \describe{
+#' \item{motherID:}   {ID of mother.}
+#' \item{fatherID:}   {ID of father.}
+#' \item{age:}        {Age in days. Initialised at 0 since they're new!}
+#' \item{stage:}      {Development stage of clutch. Should only be 1 since these are eggs.}
+#' \item{infProb:}    {Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
 #'                   Incompatability, else infProb is nonzero.}
-#' \item{lat:        Initial north/south or 'y' coordinate of agent.
+#' \item{lat:}        {Initial north/south or 'y' coordinate of agent.
 #'                   Should start with -16. Should be same as mother.}
-#' \item{long:       Initial east/west of 'x' coordinate of agent.
+#' \item{long:}       {Initial east/west of 'x' coordinate of agent.
 #'                   Should start with 145. Should be same as mother.}
-#' \item{clutchSize: Number of juveniles in the clutch.}
-#' \item{pDeath:     Probability of death.}
+#' \item{clutchSize:} {Number of juveniles in the clutch.}
+#' \item{pDeath:}     {Probability of death.}
 #' }
 #' @param toLay List of the indices of mothers attempting to lay a clutch.
-#' @return A data.table of juvenile agents in stage 1 corresponding to each mother in \code{toLay}.
-initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
+#' @param eta_1 Clutch size of non-Wolbachia carrying mothers.
+#' @param eta_2 Clutch size Wolbachia carrying mothers.
+#' @param p_1   Probability of complete maternal Wolbachia transmission.
+#' @param alpha_j Juvenile mortality rate.
+#' @return A data.table of juvenile agents in stage 1 corresponding to each mother in toLay.
+initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j, mozzie.dt, graveyard){
+  #print(paste0(eta_1, " ", eta_2, " ", p_1, " ", alpha_j, " "))
   noMothers <- length(toLay)
-  eggs.dt <- data.table(motherID = numeric(noMothers), fatherID = numeric(noMothers), motherStatus = numeric(noMothers), fatherStatus = numeric(noMothers), age = numeric(noMothers), stage = numeric(noMothers), infProb = numeric(noMothers) , lat = double(noMothers), long = double(noMothers), clutchSize =  numeric(noMothers), enzyme = double(noMothers), pDeath = double(noMothers), gridID = integer(noMothers))
+  #' Subset mozzie.dt to just include mothers who are laying
+  #' this makes it easy to assign variable values on to children
+  mothers.dt <- filter(mozzie.dt, ID %in% toLay)
+  eggs.dt <- data.table(motherID = numeric(noMothers),
+                        fatherID = numeric(noMothers),
+                        motherStatus = numeric(noMothers),
+                        fatherStatus = numeric(noMothers),
+                        age = numeric(noMothers),
+                        stage = numeric(noMothers),
+                        infProb = numeric(noMothers) ,
+                        lat = double(noMothers),
+                        long = double(noMothers),
+                        clutchSize =  numeric(noMothers),
+                        enzyme = double(noMothers),
+                        pDeath = double(noMothers),
+                        gridID = integer(noMothers))
 
-  eggs.dt$motherID <- mozzie.dt$ID[toLay]
-  eggs.dt$fatherID <- mozzie.dt$mateID[toLay]
+
+  # 28/6/20: changing this to use MOTHER ID and NOT THE INDEX YOU GET FROM which()
+
+  #eggs.dt$motherID <- toLay
+  #eggs.dt$fatherID <- mozzie.dt$mateID[toLay]
+
+  #'try and use mothers.dt as much as possible as this ensures we
+  #'are keeping everything in the right order
+  eggs.dt$motherID <- mothers.dt$ID
+  eggs.dt$fatherID <- mothers.dt$mateID
+  #eggs.dt$fatherID <- mozzie.dt$mateID[mozzie.dt$ID  %in% toLay]
+
   eggs.dt$age    <- 0 #because they're new!
   eggs.dt$stage  <- 1 #because they're eggs!
-  eggs.dt$lat    <- mozzie.dt$lat[toLay] #mother's position
-  eggs.dt$long   <- mozzie.dt$long[toLay] #mother's position
-  eggs.dt$gridID <- as.integer(mapply(FUN = get_gridID, eggs.dt$lat, eggs.dt$long))
+ #eggs.dt$lat    <- mozzie.dt$lat[toLay] #mother's position
+  #eggs.dt$long   <- mozzie.dt$long[toLay] #mother's position
+
+  # eggs.dt$lat  <- mozzie.dt$lat[mozzie.dt$ID  %in% toLay]
+  # eggs.dt$long <- mozzie.dt$long[mozzie.dt$ID  %in% toLay]
+
+  #' Clutch will be initialised at the same position as its mother
+  eggs.dt$lat    <- mothers.dt$lat
+  eggs.dt$long   <- mothers.dt$long
+  eggs.dt$gridID <- mothers.dt$gridID
+
+  # motherStatus is just the mother's infStatus
+  eggs.dt$motherStatus <- mothers.dt$infStatus
+  eggs.dt$enzyme <- 0 #Since they are new eggs, they haven't had the "chance" to accumulate enzyme yet
+  eggs.dt$enzyme[which(eggs.dt$motherStatus == 1)] <- -1.1
+
+  #clutch size determined by mother's infStatus:
+  eggs.dt$clutchSize[which(eggs.dt$motherStatus == 1)] <- eta_2
+  eggs.dt$clutchSize[which(eggs.dt$motherStatus == 0)] <- eta_1
+
+  #eggs.dt$gridID <- as.integer(mapply(FUN = get_gridID, eggs.dt$lat, eggs.dt$long))
 
   # This code needs to be removed- fix code so I don't have to do this --------
+  # 21-09-20: I actually don't think we need this anymore: I think I fixed it :)
   eggs.dt[eggs.dt=="NULL"] <- 0
   eggs.dt <- na.omit(eggs.dt) #CHANGE THIS it shouldnt be happening
   #eggs.dt <- eggs.dt[complete.cases(eggs.dt$infProb),]
-  eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 1)] <- eta_2 #finish
-  eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 0)] <- eta_1 #finish
 
-  eggs.dt$enzyme <- 0 #Since they are new eggs, they haven't had the "chance" to accumulate enzyme yet
+  #eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 1)] <- eta_2 #finish
+  #eggs.dt$clutchSize[which(mozzie.dt$infStatus[toLay] == 0)] <- eta_1 #finish
+#  eggs.dt$clutchSize[which(mozzie.dt$infStatus[mozzie.dt$ID  %in% toLay] == 1)] <- eta_2 #finish
+#  eggs.dt$clutchSize[which(mozzie.dt$infStatus[mozzie.dt$ID  %in% toLay] == 0)] <- eta_1 #finish
 
 
   # CI ----
-  #eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% mozzie.dt$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status
-  eggs.dt$fatherStatus <- mozzie.dt$infStatus[mozzie.dt$mateID[toLay]]
-  eggs.dt$motherStatus <- mozzie.dt$infStatus[toLay] #same but for mother
+       #eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% mozzie.dt$mateID[toLay])] #should give a list of 1s and 0s corresponding to their father's Wolbachia status
 
-  #If mother is a Wolbachia carrier then offspring should be (with probability p_1)
+       #eggs.dt$fatherStatus <- mozzie.dt$infStatus[mozzie.dt$mateID[toLay]]
+       #eggs.dt$motherStatus <- mozzie.dt$infStatus[toLay] #same but for mother
+
+  # 5/7/20 THIS WORKS.... for one number
+  #eggs.dt$fatherStatus[1] <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID[1])]
+  # SO honestly.... just do a loop for now
+
+  # 21-09-20 replace this:
+  # eggs.dt$motherStatus <- mozzie.dt$infStatus[mozzie.dt$ID %in% toLay] # mother's Wolbachia status
+  #
+  # f.IDs       <- eggs.dt$fatherID # List of father IDs
+  # alive.f.IDs <- which(f.IDs %in% mozzie.dt$ID) # Which eggs have alive fathers
+  # grave.f.IDs <- which(f.IDs %in% graveyard$ID) # Which eggs have fathers in the graveyard
+  # end replacement for 21-09-20
+
+  #'below is me adapting the above for optimisation
+  #'The idea here is to split eggs.dt into those who have alive dads and thos who
+  #'have dead dads. I'll then get the wolbachia status (carry/not carry) for each agent
+  #'and then rowbind them together at the end.
+  alive.dads <- filter(eggs.dt, fatherID %in% mozzie.dt$ID)
+  dead.dads <- filter(eggs.dt, fatherID %in% graveyard$ID)
+  #'----- end adaptation
+
+  # We need to do two loops: one for those who have alive fathers and one for those whose fathers are in the
+#
+#   system.time(
+#   for(i in alive.f.IDs){
+#     eggs.dt$fatherStatus[i] <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID[i])]
+#   })
+#
+#   # Now for those with dads in the graveyard
+#   system.time(
+#   for(j in grave.f.IDs){
+#     eggs.dt$fatherStatus[j] <- graveyard$infStatus[which(graveyard$ID %in% eggs.dt$fatherID[j])]
+#   })
+
+
+  #' EDIT 21-9-20: VECTORISE THE ABOVE CODE
+  #' We need to do two loops: one for those who have alive fathers and one for those whose fathers are dead
+  #' r is a vector of the father's infStatus for every juvenile clutch in alive.dads.
+ system.time(
+  r <- foreach (i = 1:length(alive.dads$fatherID), .combine = c) %dopar% {
+    mozzie.dt$infStatus[which(mozzie.dt$ID == alive.dads$fatherID[i])]
+  })
+ #print(paste0(" unique alive dads: ", length(unique(alive.dads$fatherID))))
+ #print(paste0("r ", length(r), " ", head(r)))
+  alive.dads$fatherStatus <- r
+  #' Now for those with dads in the graveyard
+
+ system.time(
+  s <- foreach (j = 1:length(dead.dads$fatherID), .combine = c) %dopar% {
+    graveyard$infStatus[which(graveyard$ID == dead.dads$fatherID[j])]
+  })
+ #print(paste0("nrow graveyard: ", nrow(graveyard), "no unique grav: ", length(unique(graveyard$ID))))
+ #print(paste0(" unique dead dads: ", length(unique(dead.dads$fatherID))))
+ #print(paste0("r ", length(s), " ", head(s)))
+ #print(dead.dads)
+
+  dead.dads$fatherStatus <- s
+
+  # smoosh these back together
+  l <- list(alive.dads, dead.dads)
+  eggs.dt <- rbindlist(l, use.names = TRUE)
+  #eggs.dt <- rbind(alive.dads, dead.dads)
+
+
+  # -----
+
+              # testing out code 5/7/20: remove later ----
+              #test <- eggs.dt$fatherID
+              #test.l <- which(test %in% mozzie.dt$ID) # which eggs have alive fathers
+              #test.g <- which(test %in% graveyard$ID) # which eggs have fathers in the graveyard
+
+              #test.lf <- eggs.dt$fatherID[test.l] #fatherIDs of alive fathers
+              #test.gf <- eggs.dt$fatherID[test.g] #fatherIDs of dead fathers
+
+              #which mozzies have the ID of those alive fathers
+              #fatherstat.lf <- mozzie.dt$infStatus[test.lf %in% mozzie.dt$fatherID]
+              # ok so we need to handle dads that are in the graveyard....
+              #fatherstat.l <- mozzie.dt$infStatus[test.l]
+              #fatherstat.g <- graveyard$infStatus[test.g]
+
+              #eggs.dt$fatherStatus[test.l] <- mozzie.dt$infStatus[test %in% mozzie.dt$ID]
+
+
+              #eggs.dt$fatherStatus <- mozzie.dt$infStatus[which(mozzie.dt$ID %in% eggs.dt$fatherID)] #THIS AINT WORKIN
+              # End 5/7/20 playing around ----
+
+  # Case I: If mother is a Wolbachia carrier then offspring should be (with probability p_1)
   #eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- (1-p_1)
-  eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- p_1
-  eggs.dt$pDeath[which(eggs.dt$motherStatus == 1)]  <- alpha_j #natural death rate
+  #CHANGED 4/1 ADDED IF STATEMENT
+
+  #print(paste0("nrow eggs.dt: ", nrow(eggs.dt)))
+  #print(paste0("length inf mothers: ", length(which(eggs.dt$motherStatus == 1))))
+  #print(p_1)
+  if(length(which(eggs.dt$motherStatus == 1)) > 0){
+    eggs.dt$infProb[which(eggs.dt$motherStatus == 1)] <- p_1
+    eggs.dt$pDeath[which(eggs.dt$motherStatus == 1)]  <- 1.1*alpha_j #natural death rate
+  }
 
   #FIX : HACKY FOR LOOP for ANZIAM 2/2/19
 
@@ -235,14 +379,14 @@ initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
 #' \item{mateID:}{Unique ID of their mate. Since no initial mosquitoes will have a mate
 #'         yet, it is initialised as -1.
 #'         Males will always have mateID as -1 since they can have multiple mates.}
-#' \item{enzyme:}{Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+#' \item{enzyme:}{Enzyme Kinetic Score. See init for explanation. Initialised
 #'         uniform randomly.}
 #' \item{age:}{Age in days. Initialised uniform randomly around what we would expect
 #'         young adults to be.}
 #' \item{gonoCycle:}{Gonotrophic cycle. Means something different for males and females.
 #'            males: number of times they've mated in a day, to be reset daily
 #'            females: how many times they've laid a clutch of eggs
-#'            we roughly estimate the gonoCycle of females based on \code{age}.}
+#'            we roughly estimate the gonoCycle of females based on age.}
 #' \item{timeDeath:}{Timestep they died: initialised as -1 as they are alive.}
 #' \item{typeDeath:}{Random mortality/trapped death/death due to old age: which type?}
 #' \item{whereTrapped:}{In the event of trapped death, where did they die? -1 otherwise.}
@@ -258,8 +402,10 @@ initialise_eggs <- function(toLay, eta_1, eta_2, p_1, alpha_j){
 #' @param noFemale Number of females.
 #' @param lat Latitude of release site.
 #' @param long Longitude of release site.
-#' @return A data.table of \code{N} adult agents.
-initialise_release <- function(noReleased, noMale, noFemale, lat, long, idStart, GID){
+#' @param idStart Index starting for new mosquito ID numbers.
+#' @param GID Unique identifier for a release site. From data.
+#' @return A data.table of N adult agents.
+initialise_release <- function(noReleased, noMale, noFemale, lat, long, idStart, GID, propInfRelease, grid.df){
   propInfRelease <- 1 #proportion of released mosquitoes that carry Wolbachia (CHECK: get actual value from WMP)
   noVariables <- 16 #number of variables used to track state of mozzie minus 2 (lat & long). this is so I make sure to remember to change it as necessary
   #18/7: change release.dt so we just have a numeric age for mosquitoes rather than timeBirth/timeAdult/timeDeath
@@ -275,7 +421,7 @@ initialise_release <- function(noReleased, noMale, noFemale, lat, long, idStart,
   release.dt$ID <- idStart:(idStart+noReleased-1) #Unique ID for each mosquito
 
   #release.dt$age <- lapply(release.dt$age, function (x) x<-round(rtruncnorm(1,mean=20,sd=2,a=14,b=30)))
-  release.dt$age        <- as.integer(lapply(release.dt$age, function(x) x <- round(runif(1,min=18,max=21),0)))
+  release.dt$age        <- as.integer(lapply(release.dt$age, function(x) x <- round(runif(1, min=15, max=25),0)))
   release.dt$motherID   <- -1
   release.dt$fatherID   <- -1
   release.dt$releaseLoc <- GID
@@ -284,16 +430,19 @@ initialise_release <- function(noReleased, noMale, noFemale, lat, long, idStart,
   release.dt$mateID     <- -1
   release.dt$long       <- long
   release.dt$lat        <- lat
-  releaseGrid           <- get_gridID(testlat = lat, testlong = long) #Every mozzie released will be at the same grid
+  #releaseGrid           <- get_gridID(testlat = lat, testlong = long) #Every mozzie released will be at the same grid
+  releaseGrid           <- get_gridID(testlat = lat, testlong = long, gridlong = grid.df$V2, gridlat = grid.df$V1) #Every mozzie released will be at the same grid
   release.dt$gridID     <- releaseGrid
   release.dt$timeDeath  <- -1
   release.dt$typeDeath  <- -1
-  #release.dt$infStatus    <- lapply(release.dt$infStatus, function(x) x <-rbinom(1,1,propInfRelease))
-  release.dt$infStatus  <- 1
+  release.dt$infStatus    <- lapply(release.dt$infStatus, function(x) x <-rbinom(1,1,propInfRelease))
+  #release.dt$infStatus  <- 1
   #infStatus: 1 for wolbachia, 0 for no wolbachia, -1 for CI
   release.dt$whereTrapped <- -1
 
-  release.dt$enzyme <- as.double(lapply(release.dt$enzyme, function(x) x <- runif(1, min=0, max=1)))  #CHANGE: want to use initial age distribution to get spread of initial enzymes
+  release.dt$enzyme <- as.double(lapply(release.dt$enzyme, function(x) x <- runif(1, min = 0, max = 0.5)))
+  release.dt$enzyme <- release.dt$enzyme - 2.5
+  #CHANGE: want to use initial age distribution to get spread of initial enzymes
 
   release.dt$gonoCycle[which(release.dt$gender == 0)] <- 0 #males start off at 0 because 'gonoCycle' tracks number of mating events in a day for males
   release.dt$gonoCycle[which(release.dt$gender == 1 & release.dt$age >=14 & release.dt$age < 20)] <- 0

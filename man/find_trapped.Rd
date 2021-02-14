@@ -8,7 +8,7 @@ If mosquitoes are within distance phi of a trap, there is a 0.5 probability
 that a mosquito is trapped.
 Only adults can be trapped.}
 \usage{
-find_trapped(traplat, traplong, phi, mozzie.dt)
+find_trapped(traplat, traplong, phi, mozzie.dt, prob)
 }
 \arguments{
 \item{traplat}{Lat of a particular trap.}
@@ -16,6 +16,10 @@ find_trapped(traplat, traplong, phi, mozzie.dt)
 \item{traplong}{Long of a particular trap.}
 
 \item{phi}{Distance that a mosquito is susceptible to a trap.}
+
+\item{mozzie.dt}{Data.table of adult mosquitoes.}
+
+\item{prob}{Probability of being trapped when within trap radius.}
 }
 \value{
 Vector of mosquito IDs to be trapped. Expect to be length 0 for the first few days. If length 0 return -1.

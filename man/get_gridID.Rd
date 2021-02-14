@@ -6,7 +6,7 @@
 Assumes grid.df is a global variable.
 This is to find the grid ID of an agent. assign_grid() is for microclimates.}
 \usage{
-get_gridID(testlat, testlong)
+get_gridID(testlat, testlong, gridlong, gridlat)
 }
 \arguments{
 \item{testlat}{Latitude being considered.}
@@ -15,6 +15,7 @@ get_gridID(testlat, testlong)
 }
 \value{
 Corresponding grid ID number.
+edited 22-11-20, grid.df gets read explicitly into get_gridID
 }
 \description{
 Given a latitude and longitude, determines the corresponding grid ID.

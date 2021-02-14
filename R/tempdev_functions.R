@@ -4,13 +4,18 @@
 #' @param testlat Latitude being considered.
 #' @param testlong Longitude being considered.
 #' @return Corresponding grid ID number.
-get_gridID <- function(testlat, testlong){
+get_gridID <- function(testlat, testlong, gridlong, gridlat){
   #closelong <- which(abs(grid.df$long - testlong) == min(abs(grid.df$long - testlong)))
   #Changed to the below on 21/1/20:
-  closelong <- which(abs(grid.df$V2 - testlong) == min(abs(grid.df$V2 - testlong)))
+  #print(head(grid.df))
+  #closelong <- which(abs(grid.df$V2 - testlong) == min(abs(grid.df$V2 - testlong)))
+#' edited 22-11-20, grid.df gets read explicitly into get_gridID
+  closelong <- which(abs(gridlong - testlong) == min(abs(gridlong - testlong)))
   if(length(closelong) > 1){
     # The below used to have grid.df$lat but looks like we need to use V1, V2
-    closelat <- closelong[which(abs(grid.df$V1[closelong] - testlat) == min(abs(grid.df$V1[closelong] - testlat)))]
+    #closelat <- closelong[which(abs(grid.df$V1[closelong] - testlat) == min(abs(grid.df$V1[closelong] - testlat)))]
+    closelat <- closelong[which(abs(gridlat[closelong] - testlat) == min(abs(gridlat[closelong] - testlat)))]
+
   }else{closelat <- closelong }
 
 #  else if(length(closelong) == 0){

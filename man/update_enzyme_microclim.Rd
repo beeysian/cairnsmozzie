@@ -16,8 +16,6 @@ update_enzyme_microclim(stage, timestep, landType)
 \item{timestep}{Current timestep.}
 
 \item{landType}{Land Lype that the agent is on.}
-
-\item{grid.df}{Lookup table that includes the land type}
 }
 \value{
 Amount by which an agent's EKS will increase for that timestep.

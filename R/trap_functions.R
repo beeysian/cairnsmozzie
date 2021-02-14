@@ -81,16 +81,19 @@ trap_data_setup <- function(trapped, traploc, number_of_traps, noTimeSteps){
 #' @param traplat Lat of a particular trap.
 #' @param traplong Long of a particular trap.
 #' @param phi Distance that a mosquito is susceptible to a trap.
+#' @param mozzie.dt Data.table of adult mosquitoes.
+#' @param prob Probability of being trapped when within trap radius.
 #' @return Vector of mosquito IDs to be trapped. Expect to be length 0 for the first few days. If length 0 return -1.
-find_trapped <- function(traplat, traplong, phi, mozzie.dt){
-  bb         <- c(traplat - phi, traplat + phi, traplong - phi, traplong + phi) # Draw a box around drap of distance phi
+find_trapped <- function(traplat, traplong, phi, mozzie.dt, prob){
+  bb         <- c(traplat - phi, traplat + phi, traplong - phi, traplong + phi) # Draw a box around trap of distance phi
+
   #to.trap    <- which(mozzie.dt$lat >= bb[1] && mozzie.dt$lat <= bb[2] && mozzie.dt$long <= bb[3] && mozzie.dt$long >= bb[4])
   to.trap    <- which(mozzie.dt$lat >= bb[1] & mozzie.dt$lat <= bb[2] & mozzie.dt$long >= bb[3] & mozzie.dt$long <= bb[4] & mozzie.dt$typeDeath == -1)
 
   no.to.trap <- length(to.trap) # To calculate random vector
   #Change below to a bernoulli?
   rand       <- runif(no.to.trap, min = 0, max = 1) #Calculates a Uniform[0,1] number for each mozzie in trap radius
-  to.trap    <- to.trap[which(rand >= 0.5)]
+  to.trap    <- to.trap[which(rand <= prob)]
 
   trapped.mozz <- -1 #Error handling
   if(length(to.trap) != 0){
@@ -105,9 +108,10 @@ find_trapped <- function(traplat, traplong, phi, mozzie.dt){
 #' entire graveyard
 #' @param trapClean Cleaned trapping data as per function trap_clean.
 trap_empty <- function(trapClean){
-
 # Indices of traps that were functional during the simulation period
-timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
+#timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
+# Edited to account for 110 days:
+timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/20")), ]
 noEmpties     <- length(unique(timelyTrapped$DateCollected)) # Number of days that traps are emptied
 emptyDates <- unique(timelyTrapped$DateCollected) # The dates that traps are emptied
 diff       <- as.numeric(abs(diff(as.Date(emptyDates)))) # This gives us a vector of the difference in days between each trap empty
@@ -135,7 +139,9 @@ timelyTrapped <- as.data.frame(cbind(timelyTrapped, DaysActive))
 #' @return Vector of days where we empty the traps.
 when_trap_empty <- function(trapClean){
   # Indices of traps that were functional during the simulation period
-  timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
+  # Account for 110 days: edit this code to not use magic numbers
+  timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/20")), ]
+  #timelyTrapped <- trapClean[which(trapClean$DateCollected > as.Date("2013/01/01") & trapClean$DateCollected < as.Date("2013/04/01")), ]
   noEmpties     <- length(unique(timelyTrapped$DateCollected)) # Number of days that traps are emptied
   emptyDates <- unique(timelyTrapped$DateCollected) # The dates that traps are emptied
   diff       <- as.numeric(abs(diff(as.Date(emptyDates)))) # This gives us a vector of the difference in days between each trap empty

@@ -8,7 +8,7 @@
 #' @param boundaryDat Geographic boundary of simulation region.
 #' @param N Number of agents.
 #' @return A data frame of lat and long positions for each adult agent.
-init_position <- function(boundaryDat, N){
+init_position <- function(boundaryDat, N, grid.df){
   i <- -1
   while(i == -1){
     polyg     <- Polygon(boundaryDat)
@@ -17,7 +17,8 @@ init_position <- function(boundaryDat, N){
     if(sum(point.in.polygon(samplePts$x,samplePts$y,boundaryDat$Long,boundaryDat$Lat)) >= N){
       i      <- 0
       posdf  <- as.data.frame(cbind(long=samplePts$x, lat=samplePts$y))
-      griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long)
+      #griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long)
+      griddf <- mapply(FUN = get_gridID, testlat = posdf$lat, testlong = posdf$long, MoreArgs =  list(gridlong = grid.df$V2, gridlat = grid.df$V1))
       posdf  <- cbind(posdf, gridID = griddf)
       return(posdf)
     }

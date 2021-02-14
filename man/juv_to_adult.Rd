@@ -8,7 +8,7 @@ Many variables stay the same, like motherID, but new ones are added or changed
 Agents also undergo one motility event when they emerge.
 This becomes their new lat/long.}
 \usage{
-juv_to_adult(juvID, idStart, pmale, lambda)
+juv_to_adult(juvID, idStart, pmale, lambda, juv.dt, grid.df)
 }
 \arguments{
 \item{juvID}{The index of the agent in the juvenile data.table to be converted to adult agents.}

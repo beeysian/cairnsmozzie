@@ -31,7 +31,7 @@ bb_to_matchedIDs <- function(bb, gridSize, grid){
   bb.grid <- cbind(mesh$Var1[which(points > 0)], mesh$Var2[which(points > 0)]) #puts these grid spaces into a df
   bb.grid <- unique(as.data.frame(bb.grid)) # Get rid of duplicates
 
-  matched.IDs <- lapply(1:nrow(bb.grid), function(x){assign_grid(bb.grid[x, ], grid)}) #the 'grid' is our simulation region 'grid'
+  matched.IDs <- lapply(1:nrow(bb.grid), function(x){assign_grid(bb.grid[x, ], grid, gridSize)}) #the 'grid' is our simulation region 'grid'
   grid.pos    <- unlist(matched.IDs)
   matched.IDs <- as.data.frame(grid.pos)
   return(matched.IDs)
@@ -43,8 +43,8 @@ bb_to_matchedIDs <- function(bb, gridSize, grid){
 #' @param points Lat/long points to be matched to a grid ID.
 #' @param grid Dataframe of area grid, as per what's created in make_grid
 #' @return A dataframe of grid IDs associated with that land type.
-points_to_matchedIDs <- function(points, grid){
-  IDs         <- lapply(1:nrow(points), function(x){assign_grid(points[x, ], grid)})
+points_to_matchedIDs <- function(points, grid, gridSize){
+  IDs         <- lapply(1:nrow(points), function(x){assign_grid(points[x, ], grid, gridSize)})
   grid.pos    <- unlist(IDs)
   matched.IDs <- as.data.frame(grid.pos)
   return(grid.pos)
@@ -53,9 +53,10 @@ points_to_matchedIDs <- function(points, grid){
 #' Assigns a point to a grid ID.
 #' Used for functions points_to_matchedIDs and bb_to_matchedIDs.
 #' @param pos A point in lat/long coordinates
-#' @param grid Dataframe of area grid, as per what's created in make_grid
+#' @param grid.df Dataframe of area grid, as per what's created in make_grid
+#' @param gridSize Length/width of each grid space. Global variable.
 #' @return A grid ID that has been assigned to that point. Should be 1 integer.
-assign_grid <- function(pos, grid.df){
+assign_grid <- function(pos, grid.df, gridSize){
   close <- which((abs(pos$V2 - grid.df$V2) < gridSize) & abs(pos$V1 - grid.df$V1 < gridSize))
   grid.match <- -1
   if(length(close > 0)){
@@ -127,7 +128,7 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   final.houses      <- cbind(houses.unique$lat[which(houses.in.region ==1)], houses.unique$long[which(houses.in.region == 1)]) #puts these grid spaces into a df
   final.houses      <- as.data.frame(final.houses)
   houses.sorted     <- unique(final.houses[order(final.houses$V2, final.houses$V1), ])
-  matched.IDs       <- lapply(1:nrow(houses.sorted), function(x){assign_grid(houses.sorted[x, ], grid)})
+  matched.IDs       <- lapply(1:nrow(houses.sorted), function(x){assign_grid(houses.sorted[x, ], grid, gridSize)})
   grid.pos          <- unlist(matched.IDs)
   houses.matchedIDs <- as.data.frame(grid.pos)
 
@@ -143,31 +144,34 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
   # ---- Determine grid spaces from data sets that are lists of points: from OSM
   # The following code could be made into a function... one day.
   osmroads.dt         <- as.data.frame(cbind(newroads$X_lat, newroads$X_lon))
-  osmroads.matchedIDs <- as.data.frame(points_to_matchedIDs(osmroads.dt, grid))
+  osmroads.matchedIDs <- as.data.frame(points_to_matchedIDs(osmroads.dt, grid, gridSize))
   osmroads.matchedIDs <- osmroads.matchedIDs[which(osmroads.matchedIDs != -1),] # Remove any -1 entries
 
   river.dt            <- as.data.frame(cbind(river$X_lat, river$X_lon))
-  river.matchedIDs    <- as.data.frame(points_to_matchedIDs(river.dt, grid))
+  river.matchedIDs    <- as.data.frame(points_to_matchedIDs(river.dt, grid, gridSize))
   river.matchedIDs    <- river.matchedIDs[which(river.matchedIDs != -1),] # Remove any -1 entries
 
   ogreen.dt           <- as.data.frame(cbind(ogreen$X_lat, ogreen$X_lon))
-  ogreen.matchedIDs   <- as.data.frame(points_to_matchedIDs(ogreen.dt, grid))
+  ogreen.matchedIDs   <- as.data.frame(points_to_matchedIDs(ogreen.dt, grid, gridSize))
   ogreen.matchedIDs   <- ogreen.matchedIDs[which(ogreen.matchedIDs != -1),] # Remove any -1 entries
 
   oconc.dt            <- as.data.frame(cbind(oconc$X_lat, oconc$X_lon))
-  oconc.matchedIDs    <- as.data.frame(points_to_matchedIDs(oconc.dt, grid))
+  oconc.matchedIDs    <- as.data.frame(points_to_matchedIDs(oconc.dt, grid, gridSize))
   oconc.matchedIDs    <- oconc.matchedIDs[which(oconc.matchedIDs != -1),] # Remove any -1 entries
 
   trees.dt            <- as.data.frame(cbind(trees$X_lat, trees$X_lon))
-  trees.matchedIDs    <- as.data.frame(points_to_matchedIDs(trees.dt, grid))
+  trees.matchedIDs    <- as.data.frame(points_to_matchedIDs(trees.dt, grid, gridSize))
   trees.matchedIDs    <- trees.matchedIDs[which(trees.matchedIDs != -1),] # Remove any -1 entries
 
   builds.dt           <- as.data.frame(cbind(builds$X_lat, builds$X_lon))
-  builds.matchedIDs   <- as.data.frame(points_to_matchedIDs(builds.dt, grid))
+  builds.matchedIDs   <- as.data.frame(points_to_matchedIDs(builds.dt, grid, gridSize))
   builds.matchedIDs   <- builds.matchedIDs[which(builds.matchedIDs != -1),] # Remove any -1 entries
 
   # ---- Construct a dataframe of each grid space and land type
-  tempdata <- setNames(data.frame(matrix(ncol=4, nrow = nrow(grid))),c("Longitude","Latitude","LandType", "TemperatureDeviate"))
+  tempdata <- setNames(data.frame(matrix(ncol = 4, nrow = nrow(grid))), c("Longitude",
+                                                                          "Latitude",
+                                                                          "LandType",
+                                                                          "TemperatureDeviate"))
   tempdata$Latitude  <- grid$V1
   tempdata$Longitude <- grid$V2
   tempdata$TemperatureDeviate <- 0
@@ -216,3 +220,77 @@ initialise_enzyme_wmicroclim <- function(bdary, tempData, typeTempDevs, noDays, 
 
   return(c(EKM_chart, tempdata))
 }
+
+
+#' Alternative temperature deviate scheme 1:
+#' Temperature deviates picked randomly at uniform.
+#' This requires initialise_enzyme_wmicroclim to have run first, and
+#' landtype.df must be loaded into the global environment.
+#' @param landtype.df Dataframe of each grid space lat/long, their "realistic" land type,
+#' their "realistic" temperature deviate, and their grid ID.
+#' @param noLandTypes Number of land types.
+#' @param typeTempDevs Vector of temperature deviates. Must be of length noLandTypes.
+#' @return A vector of randomly assigned LandTypes.
+uniform_random_tempdev <- function(landtype.df, noLandTypes, typeTempDevs){
+  noGrids <- nrow(landtype.df) # get the number of grid spaces
+
+  new_landtypes <- sample(x = seq(1, noLandTypes, by = 1), size = noGrids, replace = TRUE)
+
+  return(new_landtypes)
+}
+
+#' Alternative temperature deviate scheme 2:
+#' Temperature deviates picked randomly,
+#' but proportional to their prevalence in the "realistic" tempdev scheme/
+#' This requires initialise_enzyme_wmicroclim to have run first, and
+#' landtype.df must be loaded into the global environment.
+#' @param landtype.df Dataframe of each grid space lat/long, their "realistic" land type,
+#' their "realistic" temperature deviate, and their grid ID.
+#' @param noLandTypes Number of land types.
+#' @param typeTempDevs Vector of temperature deviates. Must be of length noLandTypes.
+#' @return A vector of randomly assigned LandTypes.
+proportional_random_tempdev <- function(landtype.df, noLandTypes, typeTempDevs){
+  noGrids <- nrow(landtype.df) # get the number of grid spaces
+
+  landtype.table <- table(landtype.df$LandType) # tabulate land types
+  props <- landtype.table/noGrids # get these proportions baby
+
+  new_landtypes <- sample(x = seq(1, noLandTypes, by = 1),
+                          size = noGrids, prob = props, replace = TRUE)
+
+  #new_landtypes <- sample(x = seq(1, noLandTypes, by = 1), size = noGrids, replace = TRUE)
+
+  return(new_landtypes)
+}
+
+#' Alternative temperature deviate scheme 3:
+#' The grid is partitioned into land types, proportional in size
+#' to the land type's frequency in the "realistic" land types.
+#' The order in which each partition appears is randomly generated.
+#' This requires initialise_enzyme_wmicroclim to have run first, and
+#' landtype.df must be loaded into the global environment.
+#' @param landtype.df Dataframe of each grid space lat/long, their "realistic" land type,
+#' their "realistic" temperature deviate, and their grid ID.
+#' @param noLandTypes Number of land types.
+#' @param typeTempDevs Vector of temperature deviates. Must be of length noLandTypes.
+#' @return A vector of randomly assigned LandTypes.
+partition_tempdev <- function(landtype.df, noLandTypes, typeTempDevs){
+  noGrids <- nrow(landtype.df) # get the number of grid spaces
+
+  landtype.table <- table(landtype.df$LandType) # tabulate land types
+  #props <- landtype.table/noGrids # get these proportions baby
+
+  # determine order that the land types will appear in
+  new_landtypes <- c()
+  order <- sample(x = seq(1, noLandTypes, by = 1), replace = FALSE)
+  for(i in 1:noLandTypes){
+    new_landtypes <- c(new_landtypes, rep(order[i], times = landtype.table[order[i]]))
+  }
+
+  #new_landtypes <- sample(x = seq(1, noLandTypes, by = 1),
+  #                        size = noGrids, prob = props, replace = TRUE)
+  #new_landtypes <- sample(x = seq(1, noLandTypes, by = 1), size = noGrids, replace = TRUE)
+
+  return(new_landtypes)
+}
+

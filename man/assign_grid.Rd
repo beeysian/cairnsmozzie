@@ -5,12 +5,14 @@
 \title{Assigns a point to a grid ID.
 Used for functions points_to_matchedIDs and bb_to_matchedIDs.}
 \usage{
-assign_grid(pos, grid.df)
+assign_grid(pos, grid.df, gridSize)
 }
 \arguments{
 \item{pos}{A point in lat/long coordinates}
 
-\item{grid}{Dataframe of area grid, as per what's created in make_grid}
+\item{grid.df}{Dataframe of area grid, as per what's created in make_grid}
+
+\item{gridSize}{Length/width of each grid space. Global variable.}
 }
 \value{
 A grid ID that has been assigned to that point. Should be 1 integer.

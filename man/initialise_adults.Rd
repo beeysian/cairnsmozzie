@@ -6,10 +6,10 @@
 Since this is an initial spread, some data is made up/dummy:
 for example, we don't know the ID of the parents.
 Latitude/Longitude of agents is randomly determined through
-another function \code{init_position} and added to the data.table
+another function init_position and added to the data.table
 after construction.}
 \usage{
-initialise_adults(N, pmale)
+initialise_adults(N, pmale, boundaryDat, grid.df)
 }
 \arguments{
 \item{N}{The number of initial adult agents.}
@@ -17,14 +17,14 @@ initialise_adults(N, pmale)
 \item{pmale}{Probability of being male.}
 }
 \value{
-A data.table of \code{N} adult agents.
+A data.table of N adult agents.
 }
 \description{
 Creates an initial data.table of adult agents.
 Since this is an initial spread, some data is made up/dummy:
 for example, we don't know the ID of the parents.
 Latitude/Longitude of agents is randomly determined through
-another function \code{init_position} and added to the data.table
+another function init_position and added to the data.table
 after construction.
 }
 \section{Data.table variables and initialisation}{
@@ -36,14 +36,14 @@ gender: Male is 0, female is 1. Sampled by 1 Binomial trial as opposed to a
 mateID: Unique ID of their mate. Since no initial mosquitoes will have a mate
         yet, it is initialised as -1.
         Males will always have mateID as -1 since they can have multiple mates.
-enzyme: Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+enzyme: Enzyme Kinetic Score. See init for explanation. Initialised
         uniform randomly.
 age:    Age in days. Initialised uniform randomly around what we would expect
         young adults to be.
 gonoCycle: Gonotrophic cycle. Means something different for males and females.
            males: number of times they've mated in a day, to be reset daily
            females: how many times they've laid a clutch of eggs
-           we roughly estimate the gonoCycle of females based on \code{age}.
+           we roughly estimate the gonoCycle of females based on age.
 timeDeath: Timestep they died: initialised as -1 as they are alive.
 typeDeath: Random mortality/trapped death/death due to old age: which type?
 whereTrapped: in the event of trapped death, where did they die? -1 otherwise.

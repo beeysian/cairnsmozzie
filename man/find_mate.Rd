@@ -12,6 +12,8 @@ find_mate(femID, k, max_daily_mates, mozzie.dt)
 \item{k}{Distance within which female mosquito 'searches' for mate. ABC parameter.}
 
 \item{max_daily_mates}{Number of times a male can mate in a day.}
+
+\item{mozzie.dt}{Data.table of adult mosquitoes.}
 }
 \value{
 \code{mateID} of agent, or -1 if agent does not find a mate.

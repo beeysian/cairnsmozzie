@@ -8,13 +8,13 @@ for example, we don't know the ID of the parents.
 Latitude/Longitude of agents is randomly determined and added to the
  data.table after construction.}
 \usage{
-initialise_juveniles(Njuv)
+initialise_juveniles(Njuv, param, grid.df, boundaryDat)
 }
 \arguments{
 \item{Njuv}{The number of initial juvenile agents.}
 }
 \value{
-A data.table of \code{Njuv} juvenile agents.
+A data.table of Njuv juvenile agents.
 }
 \description{
 Creates an initial data.table of juvenile agents.

@@ -4,13 +4,35 @@
 \alias{initialise_eggs}
 \title{Creates a data.table of newly laid eggs to add to the juvenile data.table.}
 \usage{
-initialise_eggs(toLay, eta_1, eta_2, p_1, alpha_j)
+initialise_eggs(toLay, eta_1, eta_2, p_1, alpha_j, mozzie.dt, graveyard)
 }
 \arguments{
 \item{toLay}{List of the indices of mothers attempting to lay a clutch.}
+
+\item{eta_1}{Clutch size of non-Wolbachia carrying mothers.}
+
+\item{eta_2}{Clutch size Wolbachia carrying mothers.}
+
+\item{p_1}{Probability of complete maternal Wolbachia transmission.}
+
+\item{alpha_j}{Juvenile mortality rate.}
 }
 \value{
-A data.table of juvenile agents in stage 1 corresponding to each mother in \code{toLay}.
+A data.table of juvenile agents in stage 1 corresponding to each mother in toLay.
+Subset mozzie.dt to just include mothers who are laying
+this makes it easy to assign variable values on to children
+try and use mothers.dt as much as possible as this ensures we
+are keeping everything in the right order
+Clutch will be initialised at the same position as its mother
+below is me adapting the above for optimisation
+The idea here is to split eggs.dt into those who have alive dads and thos who
+have dead dads. I'll then get the wolbachia status (carry/not carry) for each agent
+and then rowbind them together at the end.
+----- end adaptation
+EDIT 21-9-20: VECTORISE THE ABOVE CODE
+We need to do two loops: one for those who have alive fathers and one for those whose fathers are dead
+r is a vector of the father's infStatus for every juvenile clutch in alive.dads.
+Now for those with dads in the graveyard
 }
 \description{
 Input is the indices of mothers attempting to lay eggs.
@@ -27,19 +49,19 @@ This is handled by the ABC parameter eta_1 and eta_2.
 }
 \section{data.table variables and initialisation}{
 
-\itemize{
-\item{motherID:   ID of mother.}
-\item{fatherID:   ID of father.}
-\item{age:        Age in days. Initialised at 0 since they're new!}
-\item{stage:      Development stage of clutch. Should only be 1 since these are eggs.}
-\item{infProb:    Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
+\describe{
+\item{motherID:}   {ID of mother.}
+\item{fatherID:}   {ID of father.}
+\item{age:}        {Age in days. Initialised at 0 since they're new!}
+\item{stage:}      {Development stage of clutch. Should only be 1 since these are eggs.}
+\item{infProb:}    {Probability of carrying Wolbachia. 0: no Wolbachia, -1: Cytoplasmic
                   Incompatability, else infProb is nonzero.}
-\item{lat:        Initial north/south or 'y' coordinate of agent.
+\item{lat:}        {Initial north/south or 'y' coordinate of agent.
                   Should start with -16. Should be same as mother.}
-\item{long:       Initial east/west of 'x' coordinate of agent.
+\item{long:}       {Initial east/west of 'x' coordinate of agent.
                   Should start with 145. Should be same as mother.}
-\item{clutchSize: Number of juveniles in the clutch.}
-\item{pDeath:     Probability of death.}
+\item{clutchSize:} {Number of juveniles in the clutch.}
+\item{pDeath:}     {Probability of death.}
 }
 }
 

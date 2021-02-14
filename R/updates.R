@@ -11,12 +11,16 @@
 #' @param long Longitude or 'x' coordinate of agent.
 #' @param lambda Shape parameter for distance calculation. ABC parameter.
 #' @return Updated \code{lat} and \code{long} of agent, as a list.
-#' @export
 random_dispersal <- function(lat, long, lambda){
   d        <- rexp(1,1/lambda) #formula given in documentation
+  #d <- rexp(1,lambda)
   theta.d  <- runif(1,0,2*pi) #formula given in documentation - distance in radians
+  # We need to get theta.d (which is in radians) and convert it into
+  # "clockwise from north" bearing
+ # degs <- theta.d*(180/pi)
+
   #ratio    <- d/(1000*6371.01) #ratio between distance and the radius of the earth
-  ratio    <- d/(6371.01)
+  ratio    <- d/(6371.01) # ratio between distance and the radius of the earth in km
 
   latrad   <- (lat*pi)/180 #converting from degrees to radians
   longrad  <- (long*pi)/180
@@ -26,10 +30,29 @@ random_dispersal <- function(lat, long, lambda){
   #longconv <- longrad+atan2(sin(thetarad)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(longrad))
   longconv <- longrad+atan2(sin(theta.d)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(latconv))
 
+  # for testing
+  #radlat <- (latconv*180)/pi
+ # radlong <- (longconv*180)/pi
+
+  #'below uses DEGREES in angle for calculation and not radians
+#  latconv  <- asin(sin(latrad)*cos(ratio)+cos(latrad)*sin(ratio)*cos(degs))
+#  longconv <- longrad+atan2(sin(degs)*cos(latrad)*sin(ratio), cos(ratio)-sin(latrad)*sin(latconv))
+
+
+# ""When converting radians back to degrees (deg = rad⋅180/π), West is negative if using signed decimal degrees"
+  #' do we need to do anything about that???
   newlat   <- (latconv*180)/pi #converting from radians to degrees
   newlong  <- (longconv*180)/pi
 
+  # for testing
+ # test <- as.data.frame(c(lat, radlat, newlat))
+ # test <- cbind(test, as.data.frame(c(long, radlong, newlong)))
+ # colnames(test) <- c("lat", "long")
+
+
   new.pos  <- list(lat=newlat, long=newlong)
+  #COMMENT THIS OUT BELOW AFTER TESTING
+  #new.pos <- list(lat = newlat, long = newlong, d = d, theta = theta.d)
   #CHECK boundaries
   return(new.pos)
 }
@@ -84,7 +107,6 @@ update_enzyme <- function(stage, timestep){
 #' @param stage Stage of agent. 1: egg, 2: larvae, 3: pupae, 4: adult.
 #' @param timestep Current timestep.
 #' @param landType Land Lype that the agent is on.
-#' @param grid.df Lookup table that includes the land type
 #' @return Amount by which an agent's EKS will increase for that timestep.
 update_enzyme_microclim <- function(stage, timestep, landType){
   if(stage == 1){
@@ -132,6 +154,7 @@ update_enzyme_microclim <- function(stage, timestep, landType){
 #' @param femID ID of female looking for mate.
 #' @param k Distance within which female mosquito 'searches' for mate. ABC parameter.
 #' @param max_daily_mates Number of times a male can mate in a day.
+#' @param mozzie.dt Data.table of adult mosquitoes.
 #' @return \code{mateID} of agent, or -1 if agent does not find a mate.
 find_mate <- function(femID, k, max_daily_mates, mozzie.dt){
   new.mate <- -1 #Function returns -1 if it does not find a mate
@@ -189,6 +212,56 @@ print("stop 1.5")
   return(new.mate)
 }
 
+#' Second try function for finding a mate, for pararellisation
+#' Takes in a female mosquito's position, then finds a single mate for them.
+#' Returns the ID of the male mate.
+#' NB the input of this function is the row position of a female in the current
+#' data.frame of agents. The output is the ID number (a column/variable) of a
+#' mate, and not its row position.
+#' @param femID ID of female mosquito to find a mate for.
+#' @param k 2*k is the width of the bounding box drawn around the mosquito.
+#' This function will attempt to find a mate within this box.
+#' @param max_daily_mates Maximum number of times a male mosquito can mate in one day.
+#' @return The ID number of the male mate.
+find_a_mate <- function(femID, k, max_daily_mates, mozzie.dt){
+  new.mate <- -1 #Function returns -1 if it does not find a mate
+
+  # Grab position of female
+  to.mate.pos    <- as.numeric(c("lat"  = mozzie.dt$lat[femID],
+                                 "long" = mozzie.dt$long[femID]))
+  # Draw boundary around female
+  to.mate.bdary  <- c("latmin" = to.mate.pos[1] - k, "latmax" = to.mate.pos[1] + k,
+                      "longmin" = to.mate.pos[2] - k , "longmax" = to.mate.pos[2] + k)
+  #' Find males inside that boundary
+  #' I find it easier to do a dplyr::filter and then change to ID numbers etc,
+  #' system.time of the below on nrow(mozzie.dt) = 91795 gives:
+  #'   user  system elapsed
+  #' 0.008   0.008   0.018
+  possible.mates <- filter(mozzie.dt, gender == 0, gonoCycle <= max_daily_mates,
+                           lat >= to.mate.bdary["latmin"],
+                           lat <= to.mate.bdary["latmax"],
+                           long >= to.mate.bdary["longmin"],
+                           long <= to.mate.bdary["longmax"])
+  no_bachelors   <- nrow(possible.mates)
+
+  if(no_bachelors == 0){
+    #' no_bachelors == 0 means that there are no suitable mates.
+    mateID <- -1
+  }else if(no_bachelors == 1){
+    #' no_bachelors == 1 means there is one suitable bachelor
+    mateID <- as.integer(possible.mates$ID)
+  }else{
+    #' no_bachelors > 1 means there are multiple suitable bachelors
+    #' We randomly permute them and then take the top of the pile.
+    mateID <- as.integer(sample(possible.mates$ID)[1])
+  }
+
+  #' Return the ID :)
+  return(mateID)
+}
+
+
+
 #' Takes a juvenile agent and splits it into adult ages
 #' This is to simulate 'emergence' of juveniles form aquatic stage.
 #' Many variables stay the same, like motherID, but new ones are added or changed
@@ -225,8 +298,43 @@ print("stop 1.5")
 #' @param pmale Probability of being male.
 #' @param lambda Shape parameter for distance calculation. ABC parameter.
 #' @return A data.table of \code{N} adult agents.
-juv_to_adult <- function(juvID, idStart, pmale, lambda){
-  new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1), gender=numeric(juv.dt$clutchSize[[juvID]]), lat=numeric(juv.dt$clutchSize[[juvID]]), long=numeric(juv.dt$clutchSize[[juvID]]), mateID=numeric(juv.dt$clutchSize[[juvID]]), enzyme=numeric(juv.dt$clutchSize[[juvID]]), age=numeric(juv.dt$clutchSize[[juvID]]), gonoCycle=numeric(juv.dt$clutchSize[[juvID]]) ,timeDeath=numeric(juv.dt$clutchSize[[juvID]]) ,typeDeath=numeric(juv.dt$clutchSize[[juvID]]), whereTrapped=numeric(juv.dt$clutchSize[[juvID]]), motherID=numeric(juv.dt$clutchSize[[juvID]]), fatherID=numeric(juv.dt$clutchSize[[juvID]]), infStatus=numeric(juv.dt$clutchSize[[juvID]]), releaseLoc=numeric(juv.dt$clutchSize[[juvID]]), gridID = numeric(juv.dt$clutchSize[[juvID]]))
+juv_to_adult <- function(juvID, idStart, pmale, lambda, juv.dt, grid.df){
+
+  new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[[juvID]]-1),
+                       gender=numeric(juv.dt$clutchSize[[juvID]]),
+                       lat=numeric(juv.dt$clutchSize[[juvID]]),
+                       long=numeric(juv.dt$clutchSize[[juvID]]),
+                       mateID=numeric(juv.dt$clutchSize[[juvID]]),
+                       enzyme=numeric(juv.dt$clutchSize[[juvID]]),
+                       age=numeric(juv.dt$clutchSize[[juvID]]),
+                       gonoCycle=numeric(juv.dt$clutchSize[[juvID]]),
+                       timeDeath=numeric(juv.dt$clutchSize[[juvID]]),
+                       typeDeath=numeric(juv.dt$clutchSize[[juvID]]),
+                       whereTrapped=numeric(juv.dt$clutchSize[[juvID]]),
+                       motherID=numeric(juv.dt$clutchSize[[juvID]]),
+                       fatherID=numeric(juv.dt$clutchSize[[juvID]]),
+                       infStatus=numeric(juv.dt$clutchSize[[juvID]]),
+                       releaseLoc=numeric(juv.dt$clutchSize[[juvID]]),
+                       gridID = numeric(juv.dt$clutchSize[[juvID]]))
+  #print(length(juv.dt))
+#print(juv.dt$clutchSize)
+  # new.dt <- data.table(ID=idStart:(idStart+juv.dt$clutchSize[juvID]-1),
+  #                      gender=numeric(juv.dt$clutchSize[juvID]),
+  #                      lat=numeric(juv.dt$clutchSize[juvID]),
+  #                      long=numeric(juv.dt$clutchSize[juvID]),
+  #                      mateID=numeric(juv.dt$clutchSize[juvID]),
+  #                      enzyme=numeric(juv.dt$clutchSize[juvID]),
+  #                      age=numeric(juv.dt$clutchSize[juvID]),
+  #                      gonoCycle=numeric(juv.dt$clutchSize[juvID]),
+  #                      timeDeath=numeric(juv.dt$clutchSize[juvID]),
+  #                      typeDeath=numeric(juv.dt$clutchSize[juvID]),
+  #                      whereTrapped=numeric(juv.dt$clutchSize[juvID]),
+  #                      motherID=numeric(juv.dt$clutchSize[juvID]),
+  #                      fatherID=numeric(juv.dt$clutchSize[juvID]),
+  #                      infStatus=numeric(juv.dt$clutchSize[juvID]),
+  #                      releaseLoc=numeric(juv.dt$clutchSize[juvID]),
+  #                      gridID = numeric(juv.dt$clutchSize[juvID]))
+
   new.dt$gender <- as.integer(lapply(new.dt$gender, function(x) x<- rbinom(1,1,1-pmale))) #probability of male is calculated above. since female mozzies are represented by 1 (a success) we have 1-pmale
 
   #We assume that mozzies disperse a bit from their original position when they hatch
@@ -235,7 +343,8 @@ juv_to_adult <- function(juvID, idStart, pmale, lambda){
   positions   <- do.call(rbind,positions)
   new.dt$lat  <- as.numeric(positions[,1])
   new.dt$long <- as.numeric(positions[,2])
-  new.dt$gridID <- mapply(FUN = get_gridID, new.dt$lat, new.dt$long)
+  #new.dt$gridID <- mapply(FUN = get_gridID, new.dt$lat, new.dt$long)
+  new.dt$gridID <- mapply(FUN = get_gridID, new.dt$lat, new.dt$long, MoreArgs = list(gridlong = grid.df$V2, gridlat = grid.df$V1))
 
   new.dt$mateID      <- new.dt$mateID[new.dt$gender == 0] <- -1 #males don't have mates
   new.dt$enzyme      <- 0 #enzyme resets because they're moving to the next stage

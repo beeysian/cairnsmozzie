@@ -17,13 +17,22 @@
 #' @return The mean temperature for each day of the simulation period, expressed as
 #' a dataframe of length \code{noTimeSteps}.
 temperature_chart <- function(mindf, maxdf, noTimeSteps){
-  oct <- rowMeans(cbind(mindf$Oct,maxdf$Oct))
-  nov <- rowMeans(cbind(mindf$Nov,maxdf$Nov))
-  dec <- rowMeans(cbind(mindf$Dec,maxdf$Dec))
 
-  dailyTemps <- c(oct,nov,dec)
+  # Old stuff- leaving it in in case I break something
+  #oct <- rowMeans(cbind(mindf$Oct,maxdf$Oct))
+  #nov <- rowMeans(cbind(mindf$Nov,maxdf$Nov))
+  #dec <- rowMeans(cbind(mindf$Dec,maxdf$Dec))
+  #dailyTemps <- c(oct,nov,dec)
+  #dailyTemps <- dailyTemps[which(dailyTemps!=-1)]
+  #dailyTemps <- dailyTemps[1:(noTimeSteps+1)]
+
+  jan <- rowMeans(cbind(mindf$Jan, maxdf$Jan))
+  feb <- rowMeans(cbind(mindf$Feb, maxdf$Feb))
+  mar <- rowMeans(cbind(mindf$Mar, maxdf$Mar))
+  apr <- rowMeans(cbind(mindf$Apr, maxdf$Apr))
+  dailyTemps <- c(jan, feb, mar, apr)
   dailyTemps <- dailyTemps[which(dailyTemps!=-1)]
-  dailyTemps <- dailyTemps[1:(noTimeSteps+1)]
+  dailyTemps <- dailyTemps[1:(noTimeSteps)]
 
   return(dailyTemps)
 }
@@ -52,7 +61,7 @@ temperature_chart <- function(mindf, maxdf, noTimeSteps){
 #' @param dailyTemps Dataframe of daily average temperatures as output from
 #' function temperature_chart
 #' @return Chart of EKM updates for each development stage for each day.
-initialize_enzyme <- function(dailyTemps){
+initialize_enzyme <- function(dailyTemps, const){
   kelvinTemps <- dailyTemps + const$KELV_CONV
 
   EKM_egg    <- 24*((const$RHO_E*(kelvinTemps/298)*exp((const$HA_E/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_E/const$R)*(((1/const$THALF_E)-(1/kelvinTemps))))))
@@ -64,3 +73,70 @@ initialize_enzyme <- function(dailyTemps){
 
   return(EKM_chart)
 }
+
+#' New method of calculating Enzyme Kinetic Score for daily update (12-09-20)
+#' This function takes in a vector of temperatures in Kelvin,
+#' after a temperature deviate has been applied (if applicable).
+#' Equation is from Focks 93.
+#' @param kelvinTemps Vector of agent temperatures, in Kelvin
+#' @param stage Development stage of agent, where:
+#' \enumerate{
+#' \item Egg
+#' \item Larvae
+#' \item Pupae
+#' \item Adult
+#' }
+#' @return A vector of daily enzyme kinetic scores for each agent.
+calculate_daily_EKS <- function(kelvinTemps, stage, const){
+  if(stage == 1){
+    EKS <- 24*((const$RHO_E*(kelvinTemps/298)*exp((const$HA_E/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_E/const$R)*(((1/const$THALF_E) - (1/kelvinTemps))))))
+  }else if(stage == 2){
+    EKS <- 24*((const$RHO_L*(kelvinTemps/298)*exp((const$HA_L/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_L/const$R)*(((1/const$THALF_L) - (1/kelvinTemps))))))
+  }else if(stage == 3){
+    EKS <- 24*((const$RHO_P*(kelvinTemps/298)*exp((const$HA_P/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_P/const$R)*(((1/const$THALF_P) - (1/kelvinTemps))))))
+  }else{
+    EKS <- 24*((const$RHO_G*(kelvinTemps/298)*exp((const$HA_G/const$R)*((1/298) - (1/kelvinTemps))))/(1 + exp((const$HH_G/const$R)*(((1/const$THALF_G)-(1/kelvinTemps))))))
+  }
+
+return(EKS)
+}
+
+
+
+#' Makes plot data for one graveyard dataframe.
+#' Because I'm tired of copying and pasting the same code over and over...
+#'
+#' @param grav.data A graveyard data.frame.
+make_plot_data <- function(grav.data){
+
+  plot.data <- grav.data %>% mutate(trapEmptyDay = case_when(timeDeath <= 8 ~ 6,
+                                                                timeDeath <= 13 ~ 13,
+                                                                timeDeath <= 20 ~ 20,
+                                                                timeDeath <= 27 ~ 27,
+                                                                timeDeath <= 34 ~ 34,
+                                                                timeDeath <= 41 ~ 41,
+                                                                timeDeath <= 48 ~ 48,
+                                                                timeDeath <= 55 ~ 55,
+                                                                timeDeath <= 62 ~ 62,
+                                                                timeDeath <= 69 ~ 69,
+                                                                timeDeath <= 76 ~ 76,
+                                                                timeDeath <= 83 ~ 83,
+                                                                timeDeath <= 91 ~ 91,
+                                                                timeDeath <= 97 ~ 97,
+                                                                timeDeath <= 104 ~ 104,
+                                                                timeDeath > 104 ~ 110)) %>%
+    group_by(trapEmptyDay, infStatus) %>%
+    summarise(trapped = n()) %>%
+    mutate(prop = trapped/sum(trapped))
+
+  plot.data  <- plot.data %>% filter(infStatus == 1)
+
+
+return(plot.data)
+
+}
+
+
+
+
+

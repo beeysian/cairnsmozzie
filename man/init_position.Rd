@@ -10,7 +10,7 @@ Includes a boundary check:
   will keep drawing points until there are N in the region/polygon.
 Requires package 'sp' for Polygon object.}
 \usage{
-init_position(boundaryDat, N)
+init_position(boundaryDat, N, grid.df)
 }
 \arguments{
 \item{boundaryDat}{Geographic boundary of simulation region.}

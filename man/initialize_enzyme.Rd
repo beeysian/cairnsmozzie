@@ -7,7 +7,7 @@ The EKM is how we dictate the development rate of agents.
 The EKM model is the same one used in Focks 1993.
 Input data is in CELSIUS, EKM works with KELVIN.}
 \usage{
-initialize_enzyme(dailyTemps)
+initialize_enzyme(dailyTemps, const)
 }
 \arguments{
 \item{dailyTemps}{Dataframe of daily average temperatures as output from

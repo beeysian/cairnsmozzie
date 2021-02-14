@@ -9,7 +9,17 @@ Since this is a release, some data is made up/dummy:
 for example, we don't know the ID of the parents.
 Latitude/Longitude of agents is given by data supplied by the WMP.}
 \usage{
-initialise_release(noReleased, noMale, noFemale, lat, long, idStart, GID)
+initialise_release(
+  noReleased,
+  noMale,
+  noFemale,
+  lat,
+  long,
+  idStart,
+  GID,
+  propInfRelease,
+  grid.df
+)
 }
 \arguments{
 \item{noReleased}{The number of initial adult agents.}
@@ -21,9 +31,13 @@ initialise_release(noReleased, noMale, noFemale, lat, long, idStart, GID)
 \item{lat}{Latitude of release site.}
 
 \item{long}{Longitude of release site.}
+
+\item{idStart}{Index starting for new mosquito ID numbers.}
+
+\item{GID}{Unique identifier for a release site. From data.}
 }
 \value{
-A data.table of \code{N} adult agents.
+A data.table of N adult agents.
 }
 \description{
 Simulates a release of Wolbachia-carrying mosquitoes.
@@ -42,14 +56,14 @@ Latitude/Longitude of agents is given by data supplied by the WMP.
 \item{mateID:}{Unique ID of their mate. Since no initial mosquitoes will have a mate
         yet, it is initialised as -1.
         Males will always have mateID as -1 since they can have multiple mates.}
-\item{enzyme:}{Enzyme Kinetic Score. See \code{init} for explanation. Initialised
+\item{enzyme:}{Enzyme Kinetic Score. See init for explanation. Initialised
         uniform randomly.}
 \item{age:}{Age in days. Initialised uniform randomly around what we would expect
         young adults to be.}
 \item{gonoCycle:}{Gonotrophic cycle. Means something different for males and females.
            males: number of times they've mated in a day, to be reset daily
            females: how many times they've laid a clutch of eggs
-           we roughly estimate the gonoCycle of females based on \code{age}.}
+           we roughly estimate the gonoCycle of females based on age.}
 \item{timeDeath:}{Timestep they died: initialised as -1 as they are alive.}
 \item{typeDeath:}{Random mortality/trapped death/death due to old age: which type?}
 \item{whereTrapped:}{In the event of trapped death, where did they die? -1 otherwise.}

@@ -15,6 +15,8 @@ random_dispersal(lat, long, lambda)
 }
 \value{
 Updated \code{lat} and \code{long} of agent, as a list.
+below uses DEGREES in angle for calculation and not radians
+do we need to do anything about that???
 }
 \description{
 Method we use: distance and bearing, Haversine method

@@ -5,7 +5,7 @@
 \title{Determines the grid ID number corresponding to each lat/long point in the input.
 Returns a dataframe of grid ID numbers that will be associated with that land type.}
 \usage{
-points_to_matchedIDs(points, grid)
+points_to_matchedIDs(points, grid, gridSize)
 }
 \arguments{
 \item{points}{Lat/long points to be matched to a grid ID.}
